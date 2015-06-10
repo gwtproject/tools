@@ -1,0 +1,25 @@
+This is version 10.0.1 of guava-libraries (Google core Java libraries,
+http://code.google.com/p/guava-libraries/).
+
+In order to prevent conflicts with user code which relies on Guava,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.common" package has been renamed to
+"com.google.gwt.thirdparty.guava.common".
+
+To build guava-10.0.1-rebased.jar:
+
+1) Download http://guava-libraries.googlecode.com/files/guava-10.0.1.zip
+
+2) unzip guava-10.0.1.zip  guava-10.0.1/{COPYING,guava-10.0.1.jar}
+
+3a) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.0.jar
+
+3b) Rebase guava-10.0.1.jar:
+ <jarjar command> process guava-10.0.1.jarjar-rules guava-10.0.1.jar guava-10.0.1-rebased.jar
+
+4) Clean up the resulting jar to remove META-INF and non-rebased
+   package-info.class files:
+
+   jar xvf guava-10.0.1-rebased.jar
+   rm -rf META-INF/ com/google/common/
+   jar -Mcvf guava-10.0.1-rebased.jar com/google/gwt

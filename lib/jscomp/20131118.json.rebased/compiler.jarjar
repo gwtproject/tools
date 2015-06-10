@@ -1,0 +1,10 @@
+zap com.google.common.**
+zap com.google.protobuf.**
+zap javax.**
+zap org.**
+rule org.json.**  com.google.gwt.thirdparty.json.@1
+rule com.google.common.**  com.google.gwt.thirdparty.guava.common.@1
+rule com.google.protobuf.**  com.google.gwt.dev.protobuf.@1
+rule com.google.debugging.** com.google.gwt.thirdparty.debugging.@1
+rule com.google.javascript.** com.google.gwt.thirdparty.javascript.@1
+rule org.mozilla.classfile.** com.google.gwt.thirdparty.mozilla.classfile.@1

@@ -1,0 +1,5 @@
+zap com.google.common.**
+zap com.google.protobuf.**
+zap javax.**
+zap org.**
+rule org.mozilla.classfile.** com.google.gwt.thirdparty.mozilla.classfile.@1

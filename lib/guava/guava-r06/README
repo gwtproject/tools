@@ -1,0 +1,54 @@
+This is version r06 of guava-libraries (Google core Java libraries,
+http://code.google.com/p/guava-libraries/).
+
+In order to prevent conflicts with user code which relies on Guava,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.common" package has been renamed to
+"com.google.gwt.thirdparty.guava.common".
+
+To build guava-r06-rebased.jar:
+
+1) Download http://guava-libraries.googlecode.com/files/guava-r06.zip
+
+2) unzip guava-r06.zip  guava-r06/{COPYING,guava-r06.jar}
+
+3a) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.0.jar
+
+3b) Rebase guava-r06.jar:
+ <jarjar command> process guava-r06.jarjar-rules guava-r06.jar guava-r06-rebased.jar
+
+4) Clean up the resulting jar to remove META-INF and non-rebased
+   package-info.class files:
+
+   jar xvf guava-r06-rebased.jar
+   rm -rf META-INF/ com/google/common/
+   jar -Mcvf guava-r06-rebased.jar com/google/gwt
+
+To build guava-r06-rebased-2.jar:
+
+1) Download http://guava-libraries.googlecode.com/files/guava-r06.zip
+
+2) unzip guava-r06.zip  guava-r06/guava-src-r06.zip
+
+3) unzip the Guava source files:
+ cd guava-r06
+ unzip guava-src-r06.zip
+
+4) Create the folder for the rebased packages and move the files
+ mkdir -p com/google/gwt/thirdparty/guava/
+ mv com/google/common com/google/gwt/thirdparty/guava/
+
+5) Modify all references to package "com.google.common" to 
+   "com.google.gwt.thirdparty.guava.common":
+ find -name \*.java | xargs -n 1 sed -i 's/com\.google\.common/com.google.gwt.thirdparty.guava.common/g'
+
+6) Compile the classes:
+ find -name \*.java | xargs javac -target 5 -cp ../../../jsr305/jsr305.jar
+
+7) Package classes in a jar:
+ find -name \*.class | xargs jar Mcvf ../guava-r06-rebased-2.jar
+
+8) Cleanup
+ cd ..
+ rm -rf guava-r06
+ rm guava-r06.zip

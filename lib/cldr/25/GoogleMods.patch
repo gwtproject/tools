@@ -1,0 +1,445 @@
+diff -ru0 common/bcp47/timezone.xml common/bcp47/timezone.xml
+--- common/bcp47/timezone.xml	2014-06-03 09:39:07.000000000 -0700
++++ common/bcp47/timezone.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -31,0 +32 @@
++            <type name="aqtrl" description="Troll Station, Queen Maud Land" alias="Antarctica/Troll" since="26"/>
+diff -ru0 common/main/bn.xml common/main/bn.xml
+--- common/main/bn.xml	2014-06-03 09:40:46.000000000 -0700
++++ common/main/bn.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -1457,2 +1457,3 @@
+-							<dayPeriod type="am">পূর্বাহ্ণ</dayPeriod>
+-							<dayPeriod type="pm">অপরাহ্ণ</dayPeriod>
++                                                <!-- Google specific fix for http://b/1469531 -->
++							<dayPeriod type="am">am</dayPeriod>
++							<dayPeriod type="pm">pm</dayPeriod>
+diff -ru0 common/main/en_GB.xml common/main/en_GB.xml
+--- common/main/en_GB.xml	2014-06-03 09:40:38.000000000 -0700
++++ common/main/en_GB.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -552,0 +553 @@
++						  	<greatestDifference id="a">h:mm a – h:mm a</greatestDifference>   <!-- Google patch /b/11479739-->
+diff -ru0 common/main/en.xml common/main/en.xml
+--- common/main/en.xml	2014-06-03 09:40:36.000000000 -0700
++++ common/main/en.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -775 +775 @@
+-			<territory type="CD">Congo - Kinshasa</territory>
++			<territory type="CD">Congo (DRC)</territory>   <!-- Google Patch: take variant form -->
+@@ -778 +778 @@
+-			<territory type="CG">Congo - Brazzaville</territory>
++			<territory type="CG">Congo (Republic)</territory>  <!-- Google Patch: take variant form -->
+@@ -814 +814 @@
+-			<territory type="FK">Falkland Islands</territory>
++			<territory type="FK">Falkland Islands (Islas Malvinas)</territory>  <!-- Google Patch: take variant form -->
+@@ -890 +890 @@
+-			<territory type="MK">Macedonia</territory>
++			<territory type="MK">Macedonia (FYROM)</territory>  <!-- Google Patch: take variant form -->
+@@ -1279,12 +1279,14 @@
+-							<month type="1">Month1</month>
+-							<month type="2">Month2</month>
+-							<month type="3">Month3</month>
+-							<month type="4">Month4</month>
+-							<month type="5">Month5</month>
+-							<month type="6">Month6</month>
+-							<month type="7">Month7</month>
+-							<month type="8">Month8</month>
+-							<month type="9">Month9</month>
+-							<month type="10">Month10</month>
+-							<month type="11">Month11</month>
+-							<month type="12">Month12</month>
++                                                        <!-- Google Patch: Revert MonthX to X. CLDR bug #5932 -->
++							<month type="1">1</month>
++							<month type="2">2</month>
++							<month type="3">3</month>
++							<month type="4">4</month>
++							<month type="5">5</month>
++							<month type="6">6</month>
++							<month type="7">7</month>
++							<month type="8">8</month>
++							<month type="9">9</month>
++							<month type="10">10</month>
++							<month type="11">11</month>
++							<month type="12">12</month>
++                                                        <!-- End Google Patch -->
+@@ -4347,0 +4350 @@
++				<symbol>Php</symbol>  <!-- google patch bug 1453176 -->
+diff -ru0 common/main/fr_CA.xml common/main/fr_CA.xml
+--- common/main/fr_CA.xml	2014-06-03 09:40:46.000000000 -0700
++++ common/main/fr_CA.xml	2013-12-09 16:05:57.000000000 -0800
+@@ -53,0 +54 @@
++			<territory type="XK">Kosovo</territory>
+diff -ru0 common/main/hi.xml common/main/hi.xml
+--- common/main/hi.xml	2014-06-03 09:40:34.000000000 -0700
++++ common/main/hi.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -179 +179 @@
+-			<language type="hi">हिंदी</language>
++			<language type="hi">हिन्दी</language> <!-- google patch b/11322559 -->
+@@ -1484,0 +1485 @@
++                                                <!-- Begin Google Patch.  Buganizer 5948448 -->
+@@ -1486,2 +1487,2 @@
+-							<dayPeriod type="am">पू</dayPeriod>
+-							<dayPeriod type="pm">अ</dayPeriod>
++							<dayPeriod type="am">am</dayPeriod>
++							<dayPeriod type="pm">pm</dayPeriod>
+@@ -1490,2 +1491,2 @@
+-							<dayPeriod type="am">पूर्वाह्न</dayPeriod>
+-							<dayPeriod type="pm">अपराह्न</dayPeriod>
++							<dayPeriod type="am">am</dayPeriod>
++							<dayPeriod type="pm">pm</dayPeriod>
+@@ -1492,0 +1494 @@
++                                                <!-- End Google Patch -->
+diff -ru0 common/main/kk.xml common/main/kk.xml
+--- common/main/kk.xml	2014-06-03 09:40:47.000000000 -0700
++++ common/main/kk.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -295 +295 @@
+-			<territory type="CD">Конго</territory>
++			<territory type="CD">Конго Демократиялық Республикасы</territory>   <!-- Google patch; take variant. /b/11324281 -->
+diff -ru0 common/main/pt_PT.xml common/main/pt_PT.xml
+--- common/main/pt_PT.xml	2014-06-03 09:40:35.000000000 -0700
++++ common/main/pt_PT.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -4393 +4393 @@
+-				<symbol>₹</symbol>
++				<symbol draft="contributed">Rs.</symbol>   <!-- Google Patch: prevent overwrite from pt.xml -->
+diff -ru0 common/main/root.xml common/main/root.xml
+--- common/main/root.xml	2014-06-03 09:40:42.000000000 -0700
++++ common/main/root.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -3350 +3350 @@
+-				<symbol>₹</symbol>
++				<symbol>Rs.</symbol>   <!-- Google Patch.  Bug # 1453176 -->
+diff -ru0 common/main/ta.xml common/main/ta.xml
+--- common/main/ta.xml	2014-06-03 09:40:33.000000000 -0700
++++ common/main/ta.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -1566,0 +1567 @@
++                                                <!-- Begin Google Patch.  Buganizer 5948448 -->
+@@ -1568,2 +1569,2 @@
+-							<dayPeriod type="am">முற்பகல்</dayPeriod>
+-							<dayPeriod type="pm">பிற்பகல்</dayPeriod>
++							<dayPeriod type="am">AM</dayPeriod>
++							<dayPeriod type="pm">PM</dayPeriod>
+@@ -1570,0 +1572 @@
++                                                <!-- End Google Patch -->
+diff -ru0 common/main/tr.xml common/main/tr.xml
+--- common/main/tr.xml	2014-06-03 09:40:35.000000000 -0700
++++ common/main/tr.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -1687 +1687 @@
+-							<pattern>d.MM.y</pattern>
++							<pattern>d MM y</pattern>   <!-- Google Patch /b/8566501 -->
+@@ -4597 +4597 @@
+-				<symbol>₺</symbol>
++				<symbol>TL</symbol>   <!-- Google Patch /b/9064055 -->
+diff -ru0 common/main/uk.xml common/main/uk.xml
+--- common/main/uk.xml	2014-06-03 09:40:37.000000000 -0700
++++ common/main/uk.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -772 +772 @@
+-			<territory type="FM">Мікронезія</territory>
++			<territory type="FM">Мікронезія Федеративні Штати</territory> <!-- Google Patch: take variant form -->
+diff -ru0 common/main/zh_Hant_HK.xml common/main/zh_Hant_HK.xml
+--- common/main/zh_Hant_HK.xml	2014-06-03 09:40:46.000000000 -0700
++++ common/main/zh_Hant_HK.xml	2013-12-09 16:05:57.000000000 -0800
+@@ -112,0 +113 @@
++			<territory type="XK" draft="contributed">科索沃</territory>   <!-- Google patch -->
+@@ -754,0 +756,5 @@
++		<symbols>
++                        <!-- Google specific to be compatible with ICU4.0 -->
++			<group>,</group>
++			<list>;</list>
++		</symbols>
+diff -ru0 common/main/zh_Hant.xml common/main/zh_Hant.xml
+--- common/main/zh_Hant.xml	2014-06-03 09:40:32.000000000 -0700
++++ common/main/zh_Hant.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -4730,0 +4731,11 @@
++				<!-- Begin Google Patch for CLDR bug # 2022 -->
++				<long>
++					<generic>台北時間</generic>
++					<standard>台北標準時間</standard>
++					<daylight>台北夏令時間</daylight>
++                                </long>
++				<short>
++					<generic>台北</generic>
++					<standard>台北</standard>
++					<daylight>台北</daylight>
++				</short>
+@@ -4732 +4743,2 @@
+-			</zone>
++				<!-- End Google Patch -->
++                        </zone>
+diff -ru0 common/main/zh.xml common/main/zh.xml
+--- common/main/zh.xml	2014-06-03 09:40:47.000000000 -0700
++++ common/main/zh.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -4463,0 +4464,12 @@
++				<!-- Begin Google Patch for CLDR bug # 2202 -->
++				<long>
++					<generic>台北时间</generic>
++					<standard>台北标准时间</standard>
++					<daylight>台北夏令时间</daylight>
++                                </long>
++				<short>
++					<generic>台北</generic>
++					<standard>台北</standard>
++					<daylight>台北</daylight>
++				</short>
++                                <!-- End Google Patch.  -->
+diff -ru0 common/supplemental/likelySubtags.xml common/supplemental/likelySubtags.xml
+--- common/supplemental/likelySubtags.xml	2014-06-03 09:40:53.000000000 -0700
++++ common/supplemental/likelySubtags.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -393,0 +394 @@
++		<!-- Begin Google patch.  Work around value issues with go/iii-synonyms -->
+@@ -395 +396,2 @@
+-		<!--{ null; ?; ? } => { null; Hebrew; Ukraine }-->
++		<!--{ Yiddish; ?; ? } => { Yiddish; Hebrew; Ukraine }-->
++		<!-- End Google patch -->
+@@ -511,0 +514,4 @@
++		<!-- Begin (leftover) Google patch (CLDR ticket #3459) -->
++                <likelySubtag from="ku_IR" to="ku_Arab_IR"/>
++                <!--{ Kurdish; ?; Iran } => { Kurdish; Arabic; Iran }-->
++		<!-- End Google patch -->
+@@ -865,0 +872,2 @@
++		<likelySubtag from="sh" to="sr_Latn_RS"/> <!-- Google patch -->
++		<!--{ Serbo-Croatian; ?; ? } => { Serbian; Latin; Serbia } [Google patch]-->
+@@ -1301,0 +1310,2 @@
++		<likelySubtag from="und_Cyrl_KZ" to="kk_Cyrl_KZ"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Cyrillic; Kazakhstan } => { Kazakh; Cyrillic; Kazakhstan } [Google patch]-->
+@@ -1327,0 +1338,2 @@
++		<likelySubtag from="und_Ethi_ER" to="ti_Ethi_ER"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Ethiopic; Eritrea } => { Tigrinya; Ethiopic; Eritrea } [Google patch]-->
+@@ -1331,0 +1344,2 @@
++		<likelySubtag from="und_FJ" to="fj_Latn_FJ"/> <!-- Google patch, See http://unicode.org/cldr/trac/ticket/4247 -->
++		<!--{ ?; ?; Fiji } => { Fijian; Latin; Fiji } [Google patch]-->
+@@ -1359,0 +1374,2 @@
++		<likelySubtag from="und_GU" to="ch_Latn_GU"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; ?; Guam } => { Chamorro; Latin; Guam } [Google patch]-->
+@@ -1437,0 +1454,2 @@
++		<likelySubtag from="und_MH" to="mh_Latn_MH"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Latin; Marshall Islands } => { Marshallese; Latin; Marshall Islands } [Google patch]-->
+@@ -1474,2 +1492,2 @@
+-		<likelySubtag from="und_NO" to="nb_Latn_NO"/>
+-		<!--{ ?; ?; Norway } => { Norwegian Bokmål; Latin; Norway }-->
++		<likelySubtag from="und_NO" to="no_Latn_NO"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; ?; Norway } => { Norwegian; Latin; Norway } [Google patch]-->
+@@ -1477,0 +1496,4 @@
++		<likelySubtag from="und_NR" to="na_Latn_NR"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Latin; Nauru } => { Nauru; Latin; Nauru } [Google patch]-->
++		<likelySubtag from="und_NU" to="niu_Latn_NU"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Latin; Niue } => { Niuean; Latin; Niue } [Google patch]-->
+@@ -1530,2 +1552,2 @@
+-		<likelySubtag from="und_SJ" to="nb_Latn_SJ"/>
+-		<!--{ ?; ?; Svalbard and Jan Mayen } => { Norwegian Bokmål; Latin; Svalbard and Jan Mayen }-->
++		<likelySubtag from="und_SJ" to="no_Latn_SJ"/> <!-- Google patch -->
++		<!--{ ?; ?; Svalbard and Jan Mayen } => { Norwegian; Latin; Svalbard and Jan Mayen } [Google patch]-->
+@@ -1623,0 +1646,2 @@
++		<likelySubtag from="und_Arab_SN" to="wo_Arab_SN"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Arabic; Senegal } => { Wolof; Arabic; Senegal } [Google patch]-->
+@@ -1643,0 +1668,2 @@
++		<likelySubtag from="und_Beng_IN" to="bn_Beng_IN"/> <!-- Google patch. See http://unicode.org/cldr/trac/ticket/4783 -->
++		<!--{ ?; Bengali; India } => { Bengali; Bengali; India } [Google patch]-->
+@@ -1775,0 +1802,2 @@
++		<likelySubtag from="und_Latn_ES" to="es_Latn_ES"/>
++		<!--{ ?; Latin; Spain } => { Spanish; Latin; Spain } [Google patch; CLDR ticket 4783]-->
+@@ -1777,0 +1806,2 @@
++		<likelySubtag from="und_Latn_GB" to="en_Latn_GB"/>
++		<!--{ ?; Latin; United Kingdom } => { English; Latin; United Kingdom } [Google patch; CLDR ticket 4783]-->
+@@ -1779,0 +1810,2 @@
++		<likelySubtag from="und_Latn_GH" to="ak_Latn_GH"/>
++		<!--{ ?; Latin; Ghana } => { Akan; Latin; Ghana } [Google patch; CLDR ticket 4783]-->
+@@ -1781,0 +1814,2 @@
++		<likelySubtag from="und_Latn_ID" to="id_Latn_ID"/>
++		<!--{ ?; Latin; Indonesia } => { Indonesian; Latin; Indonesia } [Google patch; CLDR ticket 4783]-->
+@@ -1785,0 +1820,2 @@
++		<likelySubtag from="und_Latn_IT" to="it_Latn_IT"/>
++		<!--{ ?; Latin; Italy } => { Italian; Latin; Italy } [Google patch; CLDR ticket 4783]-->
+@@ -1805,0 +1842,2 @@
++		<likelySubtag from="und_Latn_TR" to="tr_Latn_TR"/>
++		<!--{ ?; Latin; Turkey } => { Turkish; Latin; Turkey } [Google patch; CLDR ticket 4783]-->
+@@ -1809,0 +1848,2 @@
++		<likelySubtag from="und_Latn_ZA" to="af_Latn_ZA"/>
++		<!--{ ?; Latin; South Africa } => { Afrikaans; Latin; South Africa } [Google patch; CLDR ticket 4783]-->
+diff -ru0 common/supplemental/metaZones.xml common/supplemental/metaZones.xml
+--- common/supplemental/metaZones.xml	2014-06-03 09:40:53.000000000 -0700
++++ common/supplemental/metaZones.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -777,0 +778,3 @@
++			<timezone type="Antarctica/Troll">
++				<usesMetazone mzone="GMT"/>
++			</timezone>
+@@ -1286 +1289,2 @@
+-				<usesMetazone from="1997-03-30 01:00" mzone="Europe_Eastern"/>
++				<usesMetazone to="2014-03-30 00:00" from="1997-03-30 01:00" mzone="Europe_Eastern"/>
++				<usesMetazone from="2014-03-30 00:00" mzone="Moscow"/>
+diff -ru0 common/supplemental/supplementalData.xml common/supplemental/supplementalData.xml
+--- common/supplemental/supplementalData.xml	2014-06-03 09:40:53.000000000 -0700
++++ common/supplemental/supplementalData.xml	2014-05-29 16:19:51.000000000 -0700
+@@ -1255 +1255 @@
+-        <group type="EU" contains="AT BE CY CZ DE DK EE ES FI FR GB GR HU IE IT LT LU LV MT NL PL PT SE SI SK BG RO" grouping="true"/> <!-- European Union, see http://europa.eu/abc/european_countries/index_en.htm -->
++        <group type="EU" contains="AT BE CY CZ DE DK EE ES FI FR GB GR HR HU IE IT LT LU LV MT NL PL PT SE SI SK BG RO" grouping="true"/> <!-- European Union, see http://europa.eu/abc/european_countries/index_en.htm -->
+@@ -3685 +3685 @@
+-			<languagePopulation type="ku_Latn" populationPercent="5.5"/>	<!--Kurdish (Latin)-->
++			<languagePopulation type="ku" populationPercent="5.5"/>		<!--Kurdish (Latin) Google patch: use "ku", CLDR ticket 4794 -->
+@@ -4691,0 +4692,3 @@
++                <!-- Google Patch: Explicit parent for locales when parent has on override of Parent to root.
++                                   Works around bug in ICU4J.  ICU ticket 9389  -->
++                <parentLocale parent="zh_Hant" locales="zh_Hant_HK zh_Hant_TW"/>
+@@ -4692,0 +4696,8 @@
++                <parentLocale parent="az_Cyrl" locales="az_Cyrl_AZ"/>
++                <parentLocale parent="sr_Latn" locales="sr_Latn_BA sr_Latn_ME sr_Latn_RS"/>
++                <parentLocale parent="pa_Arab" locales="pa_Arab_PK"/>
++                <parentLocale parent="shi_Tfng" locales="shi_Tfng_MA"/>
++                <parentLocale parent="uz_Arab" locales="uz_Arab_AF"/>
++                <parentLocale parent="uz_Latn" locales="uz_Latn_UZ"/>
++                <parentLocale parent="vai_Latn" locales="vai_Latn_LR"/>
++                <!-- End Google Patch -->
+diff -ru0 common/supplemental/supplementalMetadata.xml common/supplemental/supplementalMetadata.xml
+--- common/supplemental/supplementalMetadata.xml	2014-06-03 09:40:53.000000000 -0700
++++ common/supplemental/supplementalMetadata.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -614,0 +615 @@
++                Antarctica/Troll
+@@ -1851,0 +1853 @@
++	<!-- Google patch: added ku_Arab and ku_Latn_SY labels to locales list.  See http://unicode.org/cldr/trac/ticket/4796 -->
+@@ -1867 +1869 @@
+-			ks_Arab_IN ksb_TZ ksf_CM ksh_DE ku_Latn ku_Latn_TR kw_GB ky_Cyrl ky_Cyrl_KG
++			ks_Arab_IN ksb_TZ ksf_CM ksh_DE ku_Arab ku_Latn ku_Latn_SY ku_Latn_TR kw_GB ky_Cyrl ky_Cyrl_KG
+diff -ru0 common/supplemental/windowsZones.xml common/supplemental/windowsZones.xml
+--- common/supplemental/windowsZones.xml	2014-06-03 09:40:53.000000000 -0700
++++ common/supplemental/windowsZones.xml	2014-05-07 08:34:55.000000000 -0700
+@@ -14 +14 @@
+-		<mapTimezones otherVersion="7de0000" typeVersion="2013i">
++		<mapTimezones otherVersion="7de0000" typeVersion="2014b">
+@@ -65 +65 @@
+-			<mapZone other="Mountain Standard Time" territory="US" type="America/Denver America/Boise America/Shiprock"/>
++			<mapZone other="Mountain Standard Time" territory="US" type="America/Denver America/Boise"/>
+@@ -370 +370 @@
+-			<mapZone other="FLE Standard Time" territory="UA" type="Europe/Kiev Europe/Simferopol Europe/Uzhgorod Europe/Zaporozhye"/>
++			<mapZone other="FLE Standard Time" territory="UA" type="Europe/Kiev Europe/Uzhgorod Europe/Zaporozhye"/>
+@@ -438 +438 @@
+-			<mapZone other="Russian Standard Time" territory="RU" type="Europe/Moscow Europe/Samara Europe/Volgograd"/>
++			<mapZone other="Russian Standard Time" territory="RU" type="Europe/Moscow Europe/Samara Europe/Simferopol Europe/Volgograd"/>
+@@ -621 +621 @@
+-			<mapZone other="New Zealand Standard Time" territory="NZ" type="Pacific/Auckland Antarctica/South_Pole"/>
++			<mapZone other="New Zealand Standard Time" territory="NZ" type="Pacific/Auckland"/>
+diff -ru0 tools/java/org/unicode/cldr/tool/GenerateCoverageLevels.java tools/java/org/unicode/cldr/tool/GenerateCoverageLevels.java
+--- tools/java/org/unicode/cldr/tool/GenerateCoverageLevels.java	2014-06-03 09:17:21.000000000 -0700
++++ tools/java/org/unicode/cldr/tool/GenerateCoverageLevels.java	2014-05-07 08:34:55.000000000 -0700
+@@ -440,5 +440,11 @@
+-            final CBuilder<String, TreeSet<String>> cb = Builder.with(new TreeSet<String>());
+-            System.out.println(title + " Locales that are not in main: " + cb
+-                .addAll(localesFound)
+-                .removeAll(mainAvailable)
+-                .filter(nonAliasLocaleFilter).get());
++            //   Google Patch:  work around compiler bug in
++            //   OpenJDK Runtime Environment (build 1.6.0-google-v3-44891-16937804)
++            //   javac 1.6.0-google-v3
++            final CBuilder<String, TreeSet<String>>  cb = Builder.with(new TreeSet<String>());
++            cb.addAll(localesFound).removeAll(mainAvailable);
++            cb.filter(nonAliasLocaleFilter);
++            System.out.println(title + " Locales that are not in main: " + cb.get());
++            //System.out.println(title + " Locales that are not in main: " + Builder.with(new TreeSet<String>())
++            //        .addAll(localesFound).removeAll(mainAvailable)
++            //        .filter(nonAliasLocaleFilter).get());
++            // End Google Patch
+diff -ru0 tools/java/org/unicode/cldr/unittest/TestAll.java tools/java/org/unicode/cldr/unittest/TestAll.java
+--- tools/java/org/unicode/cldr/unittest/TestAll.java	2014-06-03 09:16:36.000000000 -0700
++++ tools/java/org/unicode/cldr/unittest/TestAll.java	2014-05-07 08:34:55.000000000 -0700
+@@ -166,0 +167 @@
++        int x = 0;
+diff -ru0 tools/java/org/unicode/cldr/util/data/africa tools/java/org/unicode/cldr/util/data/africa
+--- tools/java/org/unicode/cldr/util/data/africa	2014-06-03 09:17:49.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/africa	2014-05-07 08:34:55.000000000 -0700
+@@ -871 +871,4 @@
+-# From Paul Eggert (2013-10-03):
++# From Sebastien Willemijns (2014-03-18):
++# http://www.afriquinfos.com/articles/2014/3/18/maroc-heure-dete-avancez-tous-horloges-247891.asp
++
++# From Paul Eggert (2014-03-19):
+diff -ru0 tools/java/org/unicode/cldr/util/data/antarctica tools/java/org/unicode/cldr/util/data/antarctica
+--- tools/java/org/unicode/cldr/util/data/antarctica	2014-06-03 09:17:49.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/antarctica	2014-05-07 08:34:55.000000000 -0700
+@@ -233,12 +232,0 @@
+-#
+-# These rules for New Zealand are stolen from the 'australasia' file.
+-# Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+-Rule	NZAQ	1974	only	-	Nov	 3	2:00s	1:00	D
+-Rule	NZAQ	1975	1988	-	Oct	lastSun	2:00s	1:00	D
+-Rule	NZAQ	1989	only	-	Oct	 8	2:00s	1:00	D
+-Rule	NZAQ	1990	2006	-	Oct	Sun>=1	2:00s	1:00	D
+-Rule	NZAQ	1975	only	-	Feb	23	2:00s	0	S
+-Rule	NZAQ	1976	1989	-	Mar	Sun>=1	2:00s	0	S
+-Rule	NZAQ	1990	2007	-	Mar	Sun>=15	2:00s	0	S
+-Rule	NZAQ	2007	max	-	Sep	lastSun	2:00s	1:00	D
+-Rule	NZAQ	2008	max	-	Apr	Sun>=1	2:00s	0	S
+@@ -250,0 +239,29 @@
++#
++# year-round base
++# Troll, Queen Maud Land, -720041+0023206, since 2005-02-12
++#
++# From Paul-Inge Flakstad (2014-03-10):
++# I recently had a long dialog about this with the developer of timegenie.com.
++# In the absence of specific dates, he decided to choose some likely ones:
++#   GMT +1 - From March 1 to the last Sunday in March
++#   GMT +2 - From the last Sunday in March until the last Sunday in October
++#   GMT +1 - From the last Sunday in October until November 7
++#   GMT +0 - From November 7 until March 1
++# The dates for switching to and from UTC+0 will probably not be absolutely
++# correct, but they should be quite close to the actual dates.
++#
++# From Paul Eggert (2014-03-21):
++# The CET-switching Troll rules require zic from tzcode 2014b or later, so as
++# suggested by Bengt-Inge Larsson comment them out for now, and approximate
++# with only UTC and CEST.  Uncomment them when 2014b is more prevalent.
++#
++# Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
++#Rule	Troll	2005	max	-	Mar	 1	1:00u	1:00	CET
++Rule	Troll	2005	max	-	Mar	lastSun	1:00u	2:00	CEST
++#Rule	Troll	2005	max	-	Oct	lastSun	1:00u	1:00	CET
++#Rule	Troll	2004	max	-	Nov	 7	1:00u	0:00	UTC
++# Remove the following line when uncommenting the above '#Rule' lines.
++Rule	Troll	2004	max	-	Oct	lastSun	1:00u	0:00	UTC
++# Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
++Zone Antarctica/Troll	0	-	zzz	2005 Feb 12
++     			0:00	Troll	%s
+diff -ru0 tools/java/org/unicode/cldr/util/data/australasia tools/java/org/unicode/cldr/util/data/australasia
+--- tools/java/org/unicode/cldr/util/data/australasia	2014-06-03 09:17:49.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/australasia	2014-05-07 08:34:55.000000000 -0700
+@@ -766 +766,5 @@
+-# From Paul Eggert (2013-09-03):
++# From Paul Eggert (2014-03-11):
++# Sometimes Johnston kept Hawaii time, and sometimes it was an hour behind.
++# Details are uncertain.  We have no data for Johnston after 1970, so
++# treat it like Hawaii for now.
++#
+@@ -772,2 +776,13 @@
+-# We have no better information, so for now, assume this has been true
+-# indefinitely into the past.
++#
++# From Lyle McElhaney (2014-03-11):
++# [W]hen JI was being used for that [atomic bomb] testing, the time being used
++# was not Hawaiian time but rather the same time being used on the ships,
++# which had a GMT offset of -11 hours.  This apparently applied to at least the
++# time from Operation Newsreel (Hardtack I/Teak shot, 1958-08-01) to the last
++# Operation Fishbowl shot (Tightrope, 1962-11-04).... [See] Herman Hoerlin,
++# "The United States High-Altitude Test Experience: A Review Emphasizing the
++# Impact on the Environment", Los Alamos LA-6405, Oct 1976
++# <http://www.fas.org/sgp/othergov/doe/lanl/docs1/00322994.pdf>.
++# See the table on page 4 where he lists GMT and local times for the tests; a
++# footnote for the JI tests reads that local time is "JI time = Hawaii Time
++# Minus One Hour".
+diff -ru0 tools/java/org/unicode/cldr/util/data/europe tools/java/org/unicode/cldr/util/data/europe
+--- tools/java/org/unicode/cldr/util/data/europe	2014-06-03 09:17:49.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/europe	2014-05-07 08:34:55.000000000 -0700
+@@ -2966 +2966,5 @@
+-			2:00	EU	EE%sT
++# From Alexander Krivenyshev (2014-03-17):
++# time change at 2:00 (2am) on March 30, 2014
++# http://vz.ru/news/2014/3/17/677464.html
++			2:00	EU	EE%sT	2014 Mar 30 2:00
++			4:00	-	MSK
+diff -ru0 tools/java/org/unicode/cldr/util/data/tzdb-version.txt tools/java/org/unicode/cldr/util/data/tzdb-version.txt
+--- tools/java/org/unicode/cldr/util/data/tzdb-version.txt	2014-06-03 09:17:50.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/tzdb-version.txt	2014-05-07 08:34:55.000000000 -0700
+@@ -1 +1 @@
+-2014a
++2014b
+diff -ru0 tools/java/org/unicode/cldr/util/data/zone.tab tools/java/org/unicode/cldr/util/data/zone.tab
+--- tools/java/org/unicode/cldr/util/data/zone.tab	2014-06-03 09:17:49.000000000 -0700
++++ tools/java/org/unicode/cldr/util/data/zone.tab	2014-05-07 08:34:55.000000000 -0700
+@@ -53,0 +54 @@
++AQ	-720041+0023206	Antarctica/Troll	Troll Station, Queen Maud Land
+@@ -345,0 +347 @@
++RU	+4457+03406	Europe/Simferopol	Moscow+00 - Crimea
+@@ -401 +402,0 @@
+-UA	+4457+03406	Europe/Simferopol	central Crimea

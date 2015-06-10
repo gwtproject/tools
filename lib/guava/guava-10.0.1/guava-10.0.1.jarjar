@@ -1,0 +1,1 @@
+rule com.google.common.**  com.google.gwt.thirdparty.guava.common.@1

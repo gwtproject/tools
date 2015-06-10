@@ -1,0 +1,4 @@
+To recreate the rebased compiler.jar file, run JarJar with the follow parameters:
+
+process compiler.jarjar compiler.jar compiler-rebased.jar
+

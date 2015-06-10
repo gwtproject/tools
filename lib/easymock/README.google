@@ -1,0 +1,17 @@
+URL:
+http://downloads.sourceforge.net/project/easymock/EasyMock%20Class%20Extension/3.0/easymockclassextension-3.0.zip
+http://sourceforge.net/projects/easymock/files/EasyMock/3.0/easymock-3.0.zip
+
+Version: 3.0
+
+License: Apache 2.0
+
+License File: LICENSE.txt
+
+Description:
+EasyMock provides Mock Objects for interfaces in JUnit tests by generating them
+on the fly using Java's proxy mechanism. Due to EasyMock's unique style of
+recording expectations, most refactorings will not affect the Mock Objects.
+So EasyMock is a perfect fit for Test-Driven Development.
+
+Local Modifications: No modifications

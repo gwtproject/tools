@@ -1,0 +1,6 @@
+As of junit 4.8, the classes from org.hamcrest are bundled into junit jars.
+
+But not the source jars.
+
+So, we extracted the temp.hamcrest.source directory from junit4.8.2.zip, and
+added it to junit-4.8.2-src.jar.

@@ -1,0 +1,205 @@
+--- a/src/com/google/streamhtmlparser/impl/GenericParser.java
++++ b/src/com/google/streamhtmlparser/impl/GenericParser.java
+@@ -77,7 +77,6 @@ public class GenericParser implements Parser {
+    * @param input the {@code String} to parse
+    * @throws ParseException if an unrecoverable error occurred during parsing
+    */
+-  @Override
+   public void parse(String input) throws ParseException {
+     for (int i = 0; i < input.length(); i++)
+       parse(input.charAt(i));
+@@ -103,7 +102,6 @@ public class GenericParser implements Parser {
+    * @param input the input character to parse (process)
+    * @throws ParseException if an unrecoverable error occurred during parsing
+    */
+-  @Override
+   public void parse(char input) throws ParseException {
+     InternalState nextState =
+         parserStateTable.getNextState(currentState, input);
+@@ -138,7 +136,6 @@ public class GenericParser implements Parser {
+   /**
+    * Return the current state of the parser.
+    */
+-  @Override
+   public ExternalState getState() {
+     if (!intToExtStateTable.containsKey(currentState)) {
+       throw new NullPointerException("Did not find external state mapping " +
+@@ -150,7 +147,6 @@ public class GenericParser implements Parser {
+   /**
+    * Reset the parser back to its initial default state.
+    */
+-  @Override
+   public void reset() {
+     currentState = initialState;
+     lineNumber = 1;
+@@ -160,7 +156,6 @@ public class GenericParser implements Parser {
+   /**
+    * Sets the current line number which is returned during error messages.
+    */
+-  @Override
+   public void setLineNumber(int lineNumber) {
+     this.lineNumber = lineNumber;
+   }
+@@ -168,7 +163,6 @@ public class GenericParser implements Parser {
+   /**
+    * Returns the current line number.
+    */
+-  @Override
+   public int getLineNumber() {
+     return lineNumber;
+   }
+@@ -176,7 +170,6 @@ public class GenericParser implements Parser {
+   /**
+    * Sets the current column number which is returned during error messages.
+    */
+-  @Override
+   public void setColumnNumber(int columnNumber) {
+     this.columnNumber = columnNumber;
+   }
+@@ -184,7 +177,6 @@ public class GenericParser implements Parser {
+   /**
+    * Returns the current column number.
+    */
+-  @Override
+   public int getColumnNumber() {
+     return columnNumber;
+   }
+diff --git a/src/com/google/streamhtmlparser/impl/HtmlParserImpl.java b/src/com/google/streamhtmlparser/impl/HtmlParserImpl.java
+index 24508ca..e6bfb73 100644
+--- a/src/com/google/streamhtmlparser/impl/HtmlParserImpl.java
++++ b/src/com/google/streamhtmlparser/impl/HtmlParserImpl.java
+@@ -182,7 +182,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+     textInsideUrlValue = aHtmlParserImpl.textInsideUrlValue;
+   }
+ 
+-  @Override
+   public boolean inJavascript() {
+     return (insideJavascript
+             && ( (getState() == STATE_VALUE)
+@@ -197,7 +196,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+                  || (currentState == JS_FILE) ));
+   }
+ 
+-  @Override
+   public boolean isJavascriptQuoted() {
+     if (inJavascript()) {
+       ExternalState jsParserState = jsParser.getState();
+@@ -207,7 +205,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+     return false;
+   }
+ 
+-  @Override
+   public boolean inAttribute() {
+     ExternalState extState = getState();
+     return (extState != null && (extState == STATE_ATTR
+@@ -225,7 +222,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+    *
+    * @return {@code true} if and only if the parser is inside CSS
+    */
+-  @Override
+   public boolean inCss() {
+     return (currentState == CSS_FILE
+             || (getState() == STATE_VALUE
+@@ -233,7 +229,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+             || ("style".equals(getTag())));
+   }
+ 
+-  @Override
+   public ATTR_TYPE getAttributeType() {
+     String attribute = getAttribute();
+     if (!inAttribute()) {
+@@ -261,12 +256,10 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+     return ATTR_TYPE.REGULAR;
+   }
+ 
+-  @Override
+   public ExternalState getJavascriptState() {
+     return jsParser.getState();
+   }
+ 
+-  @Override
+   public boolean isAttributeQuoted() {
+     return (currentState == VALUE_Q_START
+             || currentState == VALUE_Q
+@@ -274,22 +267,18 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+             || currentState == VALUE_DQ);
+   }
+ 
+-  @Override
+   public String getTag() {
+     return tag.getContent().toLowerCase();
+   }
+ 
+-  @Override
+   public String getAttribute() {
+     return inAttribute() ? attr.getContent().toLowerCase() : "";
+   }
+ 
+-  @Override
+   public String getValue() {
+     return (getState() == STATE_VALUE) ? value.getContent() : "";
+   }
+ 
+-  @Override
+   public int getValueIndex() {
+     if (getState() != STATE_VALUE) {
+       return 0;
+@@ -297,7 +286,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+     return valueIndex;
+   }
+ 
+-  @Override
+   public boolean isUrlStart() {
+     // False when not inside an HTML attribute value
+     if (getState() != STATE_VALUE) {
+@@ -338,7 +326,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+    *
+    * @param mode is an enum representing the high-level state of the parser
+    */
+-  @Override
+   public void resetMode(Mode mode) {
+     insideJavascript = false;
+     tag.reset();
+@@ -402,7 +389,6 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+    * 
+    * @throws ParseException if an unrecoverable error occurred during parsing
+    */
+-  @Override
+   public void insertText() throws ParseException {
+     // Case: Inside URL attribute value.
+     if (getState() == STATE_VALUE
+@@ -504,7 +490,7 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+   private void exitTagName() {
+     tag.stopRecording();
+     String tagString = tag.getContent();
+-    if (!tagString.isEmpty() && tagString.charAt(0) == '/') {
++    if (tagString.length() > 0 && tagString.charAt(0) == '/') {
+       tag.reset();
+     }
+   }
+@@ -651,7 +637,7 @@ public class HtmlParserImpl extends GenericParser implements HtmlParser {
+     InternalState nextState = expectedNextState;
+     cdataCloseTag.stopRecording();
+     String cdataCloseTagString = cdataCloseTag.getContent();
+-    Preconditions.checkState(!cdataCloseTagString.isEmpty()
++    Preconditions.checkState(cdataCloseTagString.length() > 0
+         && cdataCloseTagString.charAt(0) == '/');  // Developer error.
+ 
+     if (cdataCloseTagString.substring(1).equalsIgnoreCase(getTag())
+diff --git a/src/com/google/streamhtmlparser/util/JavascriptTokenBuffer.java b/src/com/google/streamhtmlparser/util/JavascriptTokenBuffer.java
+index 1fa1718..9835214 100644
+--- a/src/com/google/streamhtmlparser/util/JavascriptTokenBuffer.java
++++ b/src/com/google/streamhtmlparser/util/JavascriptTokenBuffer.java
+@@ -77,8 +77,10 @@ public class JavascriptTokenBuffer {
+    * @param aJavascriptTokenBuffer the {@code JavascriptTokenBuffer} to copy
+    */
+   public JavascriptTokenBuffer(JavascriptTokenBuffer aJavascriptTokenBuffer) {
+-    buffer = Arrays.copyOf(aJavascriptTokenBuffer.buffer,
+-                           aJavascriptTokenBuffer.buffer.length);
++	buffer = new char[aJavascriptTokenBuffer.buffer.length];
++	for (int i = 0; i < aJavascriptTokenBuffer.buffer.length; i++) {
++	  buffer[i] = aJavascriptTokenBuffer.buffer[i];
++    }
+     startIndex = aJavascriptTokenBuffer.startIndex;
+     endIndex = aJavascriptTokenBuffer.endIndex;
+   }

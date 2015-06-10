@@ -1,0 +1,6 @@
+To recreate the rebased compiler.jar file:
+
+1) run JarJar with the follow parameters:
+
+  process compiler.jarjar compiler.jar compiler-stripped.jar
+

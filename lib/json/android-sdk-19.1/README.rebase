@@ -1,0 +1,7 @@
+To recreate the rebased json-android.jar file:
+
+run JarJar with the follow parameters:
+
+  process json-android.jarjar json-android.jar json-andorid-rebased.jar
+
+

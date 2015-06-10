@@ -1,0 +1,6 @@
+testNG 5.14.1 (through at least 5.14.10) happens to include junit 3.8.1 inside
+its jar.  Since we now run with junit4, even though we aren't yet using
+the annotation-based junit4-isms, we removed those from the jars here using
+the strip_junit.sh script here.
+
+The sources jar does not have junit embedded, and did not need processing.

@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: 1.6.0_16 (Sun Microsystems Inc.)
+Implementation-Vendor: Eclipse.org - Jetty
+Implementation-Version: 7.0.2.v20100331
+url: http://www.eclipse.org/jetty
+Bundle-Classpath: .
+Tool: Bnd-0.0.311
+Bundle-Name: Jetty
+Bundle-Localization: plugin
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Copyright: Copyright (c) 2008-2009 Mort Bay Consulting Pty. Ltd.
+Bundle-Vendor: Eclipse Jetty Project
+Bundle-Version: 7.0.2.v20100331
+Bnd-LastModified: 1270061483573
+Bundle-ManifestVersion: 2
+Bundle-Description: The jetty jars merged together.
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0, http://www
+ .eclipse.org/org/documents/epl-v10.php
+Bundle-DocURL: http://www.eclipse.org/jetty

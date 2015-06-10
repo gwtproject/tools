@@ -1,0 +1,74 @@
+Index: src/test/java/com/gargoylesoftware/htmlunit/html/HtmlScriptTest.java
+===================================================================
+--- src/test/java/com/gargoylesoftware/htmlunit/html/HtmlScriptTest.java	(revision 6501)
++++ src/test/java/com/gargoylesoftware/htmlunit/html/HtmlScriptTest.java	(working copy)
+@@ -212,4 +212,20 @@
+ 
+         loadPageWithAlerts(html);
+     }
++
++    @Test
++    @Alerts({ "1", "2" })
++    public void executesMultipleTextNodes() throws Exception {
++        final String html
++            = "<html><body>\n"
++            + "<script>\n"
++            + "var script = document.createElement('script');"
++            + "script.appendChild(document.createTextNode('alert(\"1\");'));\n;"
++            + "script.appendChild(document.createTextNode('alert(\"2\");'));\n;"
++            + "document.body.appendChild(script);\n"
++            + "</script>\n"
++            + "</body></html>";
++
++        loadPageWithAlerts(html);
++    }
+ }
+Index: src/main/java/com/gargoylesoftware/htmlunit/html/HtmlScript.java
+===================================================================
+--- src/main/java/com/gargoylesoftware/htmlunit/html/HtmlScript.java	(revision 6501)
++++ src/main/java/com/gargoylesoftware/htmlunit/html/HtmlScript.java	(working copy)
+@@ -250,8 +250,6 @@
+ 
+     /**
+      * Executes this script node as inline script if necessary and/or possible.
+-     *
+-     * attribute is defined, the script is not executed
+      */
+     private void executeInlineScriptIfNeeded() {
+         if (!isExecutionNeeded()) {
+@@ -263,7 +261,6 @@
+             return;
+         }
+ 
+-        final DomCharacterData textNode = (DomCharacterData) getFirstChild();
+         final String forr = getHtmlForAttribute();
+         String event = getEventAttribute();
+         // The event name can be like "onload" or "onload()".
+@@ -272,7 +269,7 @@
+         }
+ 
+         final boolean ie = getPage().getWebClient().getBrowserVersion().hasFeature(BrowserVersionFeatures.GENERATED_7);
+-        final String scriptCode = textNode.getData();
++        final String scriptCode = getScriptCode();
+         if (ie && event != ATTRIBUTE_NOT_DEFINED && forr != ATTRIBUTE_NOT_DEFINED) {
+             if ("window".equals(forr)) {
+                 // everything fine, accepted by IE and FF
+@@ -304,6 +301,18 @@
+     }
+ 
+     /**
++     * Gets the script held within the script tag.
++     */
++    private String getScriptCode() {
++        final Iterable<DomNode> textNodes = getChildren();
++        StringBuilder scriptCode = new StringBuilder();
++        for (DomNode node : textNodes) {
++            scriptCode.append(((DomCharacterData)node).getData());
++        }
++        return scriptCode.toString();
++    }
++
++    /**
+      * Executes this script node if necessary and/or possible.
+      *
+      * @param executeIfDeferred if <tt>false</tt>, and we are emulating IE, and the <tt>defer</tt>

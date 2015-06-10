@@ -1,0 +1,22 @@
+URL: http://objenesis.googlecode.com/files/objenesis-1.2-bin.zip
+Version: 1.2
+License: Apache 2.0
+License File: LICENSE
+
+Description:
+A small Java library to instantiate a new object of a particular class.
+
+Java already supports this dynamic instantiation of classes using
+Class.newInstance(). However, this only works if the class has an appropriate
+constructor. There are many times when a class cannot be instantiated this
+way, such as when the class contains:
+  * Constructors that require arguments.
+  * Constructors that have side effects.
+  * Constructors that throw exceptions.
+As a result, it is common to see restrictions in libraries stating that classes
+must require a default constructor. Objenesis aims to overcomes these
+restrictions by bypassing the constructor on object instantiation.
+
+Local Modifications:
+No Modifications
+

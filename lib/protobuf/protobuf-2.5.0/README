@@ -1,0 +1,45 @@
+This is version 2.5.0 of the Java Protocol Buffer Library. We use protocol buffers
+communication protocol between the Development Mode Server and Remote Viewers.
+
+To build protobuf-java-2.5.0.jar:
+
+1) Download http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
+2) Unzip the archive
+
+3) Follow the "Installation - With Maven" instructions located in java/README.txt.
+Note that Maven is not required; one can altenatively follow the
+"Installation - Without Maven" instructions.
+
+NOTE: If you decide to use Maven, be sure to add:  
+
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+
+as a child of the <project> tag in the java/pom.xml file. This will prevent 
+platform-dependent encoding warnings during the packaging step. See
+http://maven.apache.org/general.html#encoding-warning for more information.
+
+In order to prevent conflicts with user code which relies on Protocol Buffers, 
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library. The
+"com.google.protobuf" package has been renamed to "com.google.gwt.dev.protobuf".
+
+To build protobuf-java-rebased-2.5.0.jar:
+
+1) Download jarjar
+2) Run jarjar as follows:
+
+<jarjar command> process <jarjar rules file> protobuf-java-2.5.0.jar protobuf-java-rebased-2.5.0.jar
+
+  where:
+
+   <jarjar command> - the command used to run jarjar (typically java -jar jarjar-1.0.jar)
+   <jarjar rules file> - a rules file for jarjar. In this case, it should consist of the following:
+
+     rule com.google.protobuf.**  com.google.gwt.dev.protobuf.@1
+   
+3) Remove the META-INF directory from protobuf-java-rebased-2.5.0.jar. You can do this
+   by expanding the jar, deleting the META-INF directory, and rebuilding the jar with the
+   -M (no MANIFEST) switch.
+
+

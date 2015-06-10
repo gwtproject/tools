@@ -1,0 +1,22 @@
+This is version 16.0.1 of guava-libraries (Google core Java libraries,
+http://code.google.com/p/guava-libraries/).
+
+In order to prevent conflicts with user code which relies on Guava,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.common" package has been renamed to
+"com.google.gwt.thirdparty.guava.common".
+
+To build guava-18.0-rebased.jar:
+
+1) Download guava-18.0.jar to guava-18.0.jar
+
+2a) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.4.jar
+
+2b) Rebase guava-18.0.jar:
+ <jarjar command> process guava-18.0.jarjar-rules guava-18.0.jar guava-18.0-rebased.jar
+
+3) Clean up the resulting jar to remove META-INF:
+
+   jar xvf guava-18.0-rebased.jar
+   rm -rf META-INF/ 
+   jar -Mcvf guava-18.0-rebased.jar com/google/gwt

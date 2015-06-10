@@ -1,0 +1,215 @@
+diff -r -u emma-2.0.5312.orig/core/java12/com/vladium/emma/data/CoverageData.java emma-2.0.5312/core/java12/com/vladium/emma/data/CoverageData.java
+--- emma-2.0.5312.orig/core/java12/com/vladium/emma/data/CoverageData.java	2008-11-25 16:12:12.000000000 -0500
++++ emma-2.0.5312/core/java12/com/vladium/emma/data/CoverageData.java	2008-11-25 15:23:07.000000000 -0500
+@@ -11,9 +11,7 @@
+ import java.io.DataInput;
+ import java.io.DataOutput;
+ import java.io.IOException;
+-import java.util.HashMap;
+-import java.util.Iterator;
+-import java.util.Map;
++import java.util.*;
+ 
+ import com.vladium.util.asserts.$assert;
+ 
+@@ -64,15 +62,52 @@
+     public DataHolder getCoverage (final ClassDescriptor cls)
+     {
+         if (cls == null) throw new IllegalArgumentException ("null input: cls");
+-        
+-        return (DataHolder) m_coverageMap.get (cls.getClassVMName ());
++        return getCoverage(cls.getClassVMName());
+     }
+-    
++
++    private DataHolder getCoverage(String classVMName) {
++      // Do a merge of all the current coverage, if necessary.      
++      List coverages = (List) m_coverageMap.get(classVMName);
++      
++      if (coverages == null) {
++        return null;
++      }
++      
++      if (coverages.size() == 1) {
++        return (DataHolder) coverages.get(0);
++      }
++      
++      List mergedCoverageList = new ArrayList();
++      DataHolder mergedCoverage = merge(coverages);
++      mergedCoverageList.add(mergedCoverage);
++
++      m_coverageMap.put(classVMName, mergedCoverageList);
++      return mergedCoverage;
++    }
++  
+     public void addClass (final boolean [][] coverage, final String classVMName, final long stamp)
+     {
+-        m_coverageMap.put (classVMName, new DataHolder (coverage, stamp));
++      addCoverage(classVMName, new DataHolder(coverage, stamp));
+     }
+     
++    private void addCoverage(String classVMName, DataHolder holder) {
++      List coverageList = (List) m_coverageMap.get(classVMName);
++      if (coverageList == null) {
++        coverageList = new ArrayList();
++        m_coverageMap.put (classVMName, coverageList);
++      }
++      // Reset coverage collection if the versions of the classes we're
++      // covering don't match. A good idea to issue some warning here.
++      if (coverageList.size() > 0) {
++        DataHolder firstCoverage = (DataHolder) coverageList.get(0);
++        if (firstCoverage.m_stamp != holder.m_stamp) {
++          // Might be nice to warn users here.
++          coverageList.clear();
++        }
++      }
++      coverageList.add(holder);      
++    }
++  
+     // IMergeable:
+     
+     public boolean isEmpty ()
+@@ -80,6 +115,36 @@
+         return m_coverageMap.isEmpty ();
+     }
+ 
++    private static DataHolder merge(List coverages) {
++      if (coverages.size() == 1) {
++        return (DataHolder) coverages.get(0);
++      }
++
++      DataHolder mergedCoverage = (DataHolder) coverages.get(0);
++      
++      for (int i = 1; i < coverages.size(); ++i) {
++        merge(mergedCoverage.m_coverage, ((DataHolder)coverages.get(i)).m_coverage);
++      }
++
++      return mergedCoverage;
++    }
++  
++    private static void merge(boolean[][] lhs, boolean[][] rhs) {
++      for (int i = 0; i < lhs.length; ++i) {
++        boolean[] innerLhs = lhs[i];
++        boolean[] innerRhs = rhs[i];
++        if (innerRhs == null) {
++          continue;
++        }
++        if (innerLhs == null) {
++          innerLhs = lhs[i] = new boolean[innerRhs.length];
++        }
++        for (int j = 0; j < innerLhs.length; ++j) {
++          innerLhs[j] |= innerRhs[j];
++        }
++      }
++    }
++  
+     /*
+      * This method is not MT-safe wrt addClass() etc.
+      * 
+@@ -100,51 +165,14 @@
+                 final Map.Entry entry = (Map.Entry) entries.next ();
+                 final String classVMName = (String) entry.getKey ();
+                 
+-                final DataHolder rhsdata = (DataHolder) entry.getValue ();
++                final List/*<DataHolder>*/ rhsdatalist = (List/*<DataHolder>*/) entry.getValue ();
+                 // [assertion: rhsdata != null]
+-                
+-                final DataHolder data = (DataHolder) m_coverageMap.get (classVMName);
+-                
+-                if (data == null)
+-                    m_coverageMap.put (classVMName, rhsdata);
+-                else
+-                {
+-                    if (rhsdata.m_stamp != data.m_stamp)
+-                        m_coverageMap.put (classVMName, rhsdata);
+-                    else // merge two runtime profiles
+-                    {
+-                        final boolean [][] rhscoverage = rhsdata.m_coverage;
+-                        final boolean [][] coverage = data.m_coverage;
+-                        
+-                        // [assertion: both coverage and rhscoverage aren't null]
+-                    
+-                        if ($assert.ENABLED) $assert.ASSERT (coverage.length == rhscoverage.length, "coverage.length [" + coverage.length + "] != rhscoverage.length [" + rhscoverage.length + "]");
+-                        for (int m = 0, mLimit = coverage.length; m < mLimit; ++ m)
+-                        {
+-                            final boolean [] rhsmcoverage = rhscoverage [m];
+-                            final boolean [] mcoverage = coverage [m];
+-                            
+-                            if (mcoverage == null)
+-                            {
+-                                if ($assert.ENABLED) $assert.ASSERT (rhsmcoverage == null, "mcoverage == null but rhsmcoverage != null");
+-                                
+-                                // [nothing to merge]
+-                            }
+-                            else
+-                            {
+-                                if ($assert.ENABLED) $assert.ASSERT (rhsmcoverage != null, "mcoverage != null but rhsmcoverage == null");
+-                                if ($assert.ENABLED) $assert.ASSERT (mcoverage.length == rhsmcoverage.length, "mcoverage.length [" + mcoverage.length + "] != rhsmcoverage.length [" + rhsmcoverage.length + "]");
+-                                
+-                                for (int b = 0, bLimit = mcoverage.length; b < bLimit; ++ b)
+-                                {
+-                                    if (rhsmcoverage [b]) mcoverage [b] = true;
+-                                }
+-                            }
+-                        }
+-                    }
++
++                for (Iterator/*<DataHolder>*/ dataentries = rhsdatalist.iterator(); dataentries.hasNext(); ) {
++                    DataHolder rhsdata = (DataHolder) dataentries.next();
++                    addCoverage(classVMName, rhsdata);
+                 }
+-            }
+-                
++            }                
+             return this;
+         }
+     }
+@@ -178,7 +206,9 @@
+                 coverage [c] = DataFactory.readBooleanArray (in);
+             }
+             
+-            coverageMap.put (classVMName, new DataHolder (coverage, stamp));
++            List coverages = new ArrayList(1);
++            coverages.add(new DataHolder(coverage, stamp));
++            coverageMap.put (classVMName, coverages);
+         }
+         
+         return new CoverageData (coverageMap);
+@@ -192,13 +222,11 @@
+         final int size = coverageMap.size ();
+         out.writeInt (size);
+         
+-        final Iterator entries = coverageMap.entrySet ().iterator ();
++        final Iterator entries = coverageMap.keySet().iterator ();
+         for (int i = 0; i < size; ++ i)
+-        {
+-            final Map.Entry entry = (Map.Entry) entries.next ();
+-            
+-            final String classVMName = (String) entry.getKey ();
+-            final DataHolder data = (DataHolder) entry.getValue ();
++        {            
++            final String classVMName = (String) entries.next();
++            final DataHolder data = cdata.getCoverage(classVMName);
+             
+             final boolean [][] coverage = data.m_coverage;
+             
+@@ -224,7 +252,17 @@
+     }
+     
+     
+-    private /*final*/ HashMap /* String(classVMName) -> DataHolder */ m_coverageMap; // never null
++    /**
++     * A Map of JVM class names to List<DataHolder>
++     * 
++     * All DataHolders for a given class name must have the same stamp.
++     * In the case where we encounter two different versions of the same named
++     * class (different implementations), we throw away the existing
++     * coverage information and start fresh. This is not because it's the 
++     * "right thing" to do, but because it's the most compatible with Emma's
++     * prior behavior. 
++     */
++    private /*final*/ HashMap/*<String, List<DataHolder>>*/ m_coverageMap; // never null
+ 
+ } // end of class
+ // ----------------------------------------------------------------------------
+\ No newline at end of file

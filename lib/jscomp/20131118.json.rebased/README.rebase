@@ -1,0 +1,19 @@
+To recreate the rebased compiler.jar file:
+
+1) run JarJar with the follow parameters:
+
+  process compiler.jarjar compiler.jar compiler-rebased.jar
+
+2) Strip all unnecesary files 
+  zip compiler-rebased.jar -d javax/*
+  zip compiler-rebased.jar -d org/*
+  zip compiler-rebased.jar -d META-INF/*
+  zip compiler-rebased.jar -d LICENSE.txt
+
+3) Split the resulting jar into to
+  - compiler-rebased.jar
+      externs.zip
+      com.google.gwt.thirdparty.javascript.*
+  - sourcemap-rebased.jar
+      com.google.gwt.thirdparty.debugging.*
+

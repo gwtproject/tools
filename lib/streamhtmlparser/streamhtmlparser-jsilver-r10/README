@@ -1,0 +1,42 @@
+This is the Java Stream HTML Parser from svn revision r10 of the JSilver
+distribution (https://code.google.com/p/jsilver/).
+
+To build streamhtmlparser-jsilver-r10.jar:
+
+There are no build scripts or distribution tarballs, so we build from source:
+
+1) Check out jsilver (version r10) from http://jsilver.googlecode.com/svn/trunk/
+
+2) in the trunk/src directory,
+
+ $ find com/google/streamhtmlparser/ -name '*.java' |xargs  /usr/bin/javac -target 1.5 -classpath ../lib/guava-r06.jar
+ $ jar -Mcvf streamhtmlparser-jsilver-r10.jar $(find com/google/streamhtmlparser -name '*.class')
+
+
+In order to prevent conflicts with user code which relies on streamhtmlparser,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.streamhtmlparser" package has been renamed to
+"com.google.gwt.thirdparty.streamhtmlparser".  Note that streamhtmlparser
+depends on the guava library, which in GWT also has been rebased.
+
+To build streamhtmlparser-jsilver-r10-rebased.jar:
+
+3) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.0.jar
+
+4) Rebase streamhtmlparser-jsilver-r10.jar:
+ <jarjar command> process streamhtmlparser-jsilver-r10.jarjar-rules streamhtmlparser-jsilver-r10.jar streamhtmlparser-jsilver-r10-rebased.jar
+
+To build streamhtmlparser-jsilver-r10-1.5.jar, apply the patch required to fix 1.5 incompatiblities:
+
+5) Check out jsilver from http://jsilver.googlecode.com/svn/trunk/
+
+6) in the trunk/src directory,
+
+ $ patch -p2 < path-to-gwt-tools/lib/streamhtmlparser/streamhtmlparser-jsilver-r10/streamhtmlparser-jsilver-java1.5.patch
+ $ find com/google/streamhtmlparser/ -name '*.java' |xargs  /usr/bin/javac -target 1.5 -classpath ../lib/guava-r06.jar
+ $ jar -Mcvf streamhtmlparser-jsilver-r10-1.5.jar $(find com/google/streamhtmlparser -name '*.class')
+
+Then run jarjar to obtain streamhtmlparser-jsilver-r10-1.5-rebased.jar:
+
+7) <jarjar command> process streamhtmlparser-jsilver-r10.jarjar-rules streamhtmlparser-jsilver-r10-1.5.jar streamhtmlparser-jsilver-r10-1.5-rebased.jar
+

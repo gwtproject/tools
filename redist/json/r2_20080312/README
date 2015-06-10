@@ -1,0 +1,3 @@
+json-1.5.jar and json.jar share the same source json-src.jar. They only differ
+in that the java 1.5 compiler was used to create json-1.5.jar whereas the java
+1.6 compiler was used to create json.jar. 

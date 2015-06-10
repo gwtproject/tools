@@ -1,0 +1,56 @@
+diff -r -u ..\swt-win32-orig .
+--- .\com.c	Tue May 09 17:52:54 2006
++++ .\com.c	Mon Aug 06 18:10:59 2007
+@@ -845,6 +845,22 @@
+ }
+ #endif
+ 
++#ifndef NO_SysAllocStringLen
++JNIEXPORT jint JNICALL COM_NATIVE(SysAllocStringLen)
++	(JNIEnv *env, jclass that, jcharArray arg0, jint len)
++{
++	jchar *lparg0=NULL;
++	jint rc = 0;
++	COM_NATIVE_ENTER(env, that, SysAllocStringLen_FUNC);
++	if (arg0) if ((lparg0 = (*env)->GetCharArrayElements(env, arg0, NULL)) == NULL) goto fail;
++	rc = (jint)SysAllocStringLen((OLECHAR *)lparg0, len);
++fail:
++	if (arg0 && lparg0) (*env)->ReleaseCharArrayElements(env, arg0, lparg0, 0);
++	COM_NATIVE_EXIT(env, that, SysAllocStringLen_FUNC);
++	return rc;
++}
++#endif
++
+ #ifndef NO_SysFreeString
+ JNIEXPORT void JNICALL COM_NATIVE(SysFreeString)
+ 	(JNIEnv *env, jclass that, jint arg0)
+--- .\com_stats.c	Tue May 09 17:52:54 2006
++++ .\com_stats.c	Wed Aug 08 19:34:55 2007
+@@ -116,6 +116,7 @@
+ 	"VtblCall__II_3C_3C",
+ 	"VtblCall__II_3I",
+ 	"WriteClassStg",
++	"SysAllocStringLen",
+ };
+ 
+ #define STATS_NATIVE(func) Java_org_eclipse_swt_tools_internal_NativeStats_##func
+--- .\com_stats.h	Tue May 09 17:52:54 2006
++++ .\com_stats.h	Wed Aug 08 19:35:10 2007
+@@ -120,4 +120,5 @@
+ 	VtblCall__II_3C_3C_FUNC,
+ 	VtblCall__II_3I_FUNC,
+ 	WriteClassStg_FUNC,
++	SysAllocStringLen_FUNC,
+ } COM_FUNCS;
+--- .\make_win32.mak	Thu Nov 10 15:50:10 2005
++++ .\make_win32.mak	Mon Aug 06 16:46:03 2007
+@@ -35,7 +35,8 @@
+ 
+ AWT_PREFIX = swt-awt
+ AWT_LIB    = $(AWT_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).dll
+-AWT_LIBS   = $(JAVA_HOME)\jre\bin\jawt.lib
++#AWT_LIBS   = $(JAVA_HOME)\jre\bin\jawt.lib
++AWT_LIBS   = $(JAVA_HOME)\lib\jawt.lib
+ AWT_OBJS   = swt_awt.obj
+ 
+ WGL_PREFIX = swt-wgl

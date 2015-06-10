@@ -1,0 +1,50 @@
+Index: src/test/java/com/gargoylesoftware/htmlunit/javascript/host/DocumentTest.java
+===================================================================
+--- src/test/java/com/gargoylesoftware/htmlunit/javascript/host/DocumentTest.java	(revision 6501)
++++ src/test/java/com/gargoylesoftware/htmlunit/javascript/host/DocumentTest.java	(working copy)
+@@ -2433,4 +2433,21 @@
+         client.getPage(URL_FIRST);
+         assertEquals(getExpectedAlerts(), collectedAlerts);
+     }
++
++    @Test
++    @Browsers(Browser.FF)
++    public void getElementByTagName_includesHtml() throws Exception {
++      final String html
++          = "<html><head><title>foo</title><script>\n"
++          + "function doTest(){\n"
++          + "    alert(document.getElementsByTagNameNS('*', 'html').length);\n"
++          + "}\n"
++          + "</script></head><body onload='doTest()'>\n"
++          + "<p>hello world</p>\n"
++          + "</body></html>";
++        final List<String> collectedAlerts = new ArrayList<String>();
++        final HtmlPage page = loadPage(getBrowserVersion(), html, collectedAlerts);
++
++        assertEquals(new String[]{"1"}, collectedAlerts);
++    }
+ }
+Index: src/main/java/com/gargoylesoftware/htmlunit/javascript/host/Document.java
+===================================================================
+--- src/main/java/com/gargoylesoftware/htmlunit/javascript/host/Document.java	(revision 6501)
++++ src/main/java/com/gargoylesoftware/htmlunit/javascript/host/Document.java	(working copy)
+@@ -463,17 +463,16 @@
+      */
+     public Object jsxFunction_getElementsByTagNameNS(final Object namespaceURI, final String localName) {
+         final String description = "Document.getElementsByTagNameNS('" + namespaceURI + "', '" + localName + "')";
+-        final DomElement domNode = getPage().getDocumentElement();
+ 
+         final String prefix;
+         if (namespaceURI != null && !"*".equals("*")) {
+-            prefix = XmlUtil.lookupPrefix(domNode, Context.toString(namespaceURI));
++            prefix = XmlUtil.lookupPrefix(getPage().getDocumentElement(), Context.toString(namespaceURI));
+         }
+         else {
+             prefix = null;
+         }
+ 
+-        final HTMLCollection collection = new HTMLCollection(domNode, false, description) {
++        final HTMLCollection collection = new HTMLCollection(getDomNodeOrDie(), false, description) {
+             @Override
+             protected boolean isMatching(final DomNode node) {
+                 if (!localName.equals(node.getLocalName())) {

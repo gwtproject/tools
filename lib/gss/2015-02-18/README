@@ -1,0 +1,19 @@
+This is version 2015-02-18 of the closure stylesheets
+(https://github.com/google/closure-stylesheets).
+
+git commit id: fd1095b9a5e84a9a6a9c00cf24949cabe33478b6
+
+In order to prevent conflicts with user code,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.common" package has been renamed to
+"com.google.gwt.thirdparty.guava.common".
+
+To build closure-stylesheet-library-rebased.jar:
+
+1) Download github project and checkout commit fd1095b9a5e84a9a6a9c00cf24949cabe33478b6. Run ant library-jar.
+
+2a) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.4.jar
+
+2b) Rebase closure-stylesheet:
+ <jarjar command> process closure_stylesheets-2015-02-18.jarjar-rules closure-stylesheets-library-20150218.jar closure-stylesheets-library-20150218-rebased.jar
+

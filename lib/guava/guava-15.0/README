@@ -1,0 +1,22 @@
+This is version 15.0 of guava-libraries (Google core Java libraries,
+http://code.google.com/p/guava-libraries/).
+
+In order to prevent conflicts with user code which relies on Guava,
+we've used jarjar (http://code.google.com/p/jarjar) to rebase this library.
+The "com.google.common" package has been renamed to
+"com.google.gwt.thirdparty.guava.common".
+
+To build guava-15.0-rebased.jar:
+
+1) Download guava-15.0.jar to guava-15.0
+
+2a) Download jarjar from http://jarjar.googlecode.com/files/jarjar-1.4.jar
+
+2b) Rebase guava-15.0.jar:
+ <jarjar command> process guava-15.0.jarjar-rules guava-15.0.jar guava-15.0-rebased.jar
+
+3) Clean up the resulting jar to remove META-INF:
+
+   jar xvf guava-10.0.1-rebased.jar
+   rm -rf META-INF/ 
+   jar -Mcvf guava-10.0.1-rebased.jar com/google/gwt

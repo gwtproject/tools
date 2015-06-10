@@ -1,0 +1,1 @@
+rule org.json.**  com.google.gwt.thirdparty.json.@1

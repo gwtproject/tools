@@ -1,0 +1,13 @@
+IMPORTANT NOTE WHEN UPGRADING THE JDT.
+
+The digital signature on the jdt jar file needs to be removed by removing the following files
+from the jar:
+/META-INF/*.RSA
+/META-INF/*.SF
+
+Failure to do so will cause the open-source build process to file with an obscure error (e.g. rmic
+failing).
+
+Also move the jdtCompilerAdapter.jar out of the jdt jar file and rename it to reflect the
+version. E.g. if the jdt jar file was named org.eclipse.jdt.core-3.8.2.v20120814-155456.jar,
+rename the jdtCompilerAdapter.jar to jdtCompilerAdapter-3.8.2.v20120814-155456.jar
