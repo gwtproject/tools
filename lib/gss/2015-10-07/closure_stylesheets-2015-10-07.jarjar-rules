@@ -1,0 +1,3 @@
+rule com.google.common.css.** com.google.gwt.thirdparty.common.css.@1
+rule com.google.common.**  com.google.gwt.thirdparty.guava.common.@1
+
