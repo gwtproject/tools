@@ -3,7 +3,7 @@ Steps to build org.eclipse.jdt.core.source_3.11.0.v20150126-2015-patch-1.jar
   1. Obtain org.eclipse.jdt.core_3.11.0.v20150126-2015.jar and 
      org.eclipse.jdt.core.source_3.11.0.v20150126-2015.jar from eclipse.org
   2. unzip org.eclipse.jdt.core.source_3.11.0.v20150126-2015.jar \
-     org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java \ 
+     org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java \
      org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java \
      org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java \
      org/eclipse/jdt/internal/compiler/ast/Invocation.java \
@@ -11,9 +11,9 @@ Steps to build org.eclipse.jdt.core.source_3.11.0.v20150126-2015-patch-1.jar
      org/eclipse/jdt/internal/compiler/ast/MessageSend.java \
      org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java \
      org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java \
-     org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java 
+     org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java
   3. patch -p 3 < ./inference_context_memleak.patch
-  4. javac -cp org.eclipse.jdt.core_3.11.0.v20150126-2015.jar \ 
+  4. javac -source 7 -target 7 -cp org.eclipse.jdt.core_3.11.0.v20150126-2015.jar \
      org/eclipse/jdt/internal/compiler/ast/*.java org/eclipse/jdt/internal/compiler/lookup/*.java
   5. zip org.eclipse.jdt.core_3.11.0.v20150126-2015.jar \
      org/eclipse/jdt/internal/compiler/ast/*.class org/eclipse/jdt/internal/compiler/lookup/*.class

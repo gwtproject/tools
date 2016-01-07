@@ -1,95 +1,192 @@
-diff -r a/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java
-169a170
-> 	cleanUpInferenceContexts();
-722a724,734
-> 
-> @Override
-> public void cleanUpInferenceContexts() {
-> 	if (this.inferenceContexts == null)
-> 		return;
-> 	for (Object value : this.inferenceContexts.valueTable)
-> 		if (value != null)
-> 			((InferenceContext18) value).cleanUp();
-> 	this.inferenceContexts = null;
-> }
-> 
-diff -r a/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java b/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java
-160a161,163
-> 
-> 	if (this.scope != null)
-> 		this.scope.cleanUpInferenceContexts();
-diff -r a/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java b/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java
-510a511,515
-> 	@Override
-> 	public void cleanUpInferenceContexts() {
-> 		// Nothing to do.
-> 	}
-> 
-diff -r a/org/eclipse/jdt/internal/compiler/ast/Invocation.java b/org/eclipse/jdt/internal/compiler/ast/Invocation.java
-44a45,46
-> 	void cleanUpInferenceContexts();
-> 
-diff -r a/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java b/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java
-466,468c466,471
-< 				if (!argumentTypesElided)
-< 					return new InferenceContext18(blockScope).inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
-< 				else
----
-> 				if (!argumentTypesElided) {
-> 					InferenceContext18 freshInferenceContext = new InferenceContext18(blockScope);
-> 					ReferenceBinding inferredType = freshInferenceContext.inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
-> 					freshInferenceContext.cleanUp();
-> 					return inferredType;
-> 				} else {
-469a473
-> 				}
-diff -r a/org/eclipse/jdt/internal/compiler/ast/MessageSend.java b/org/eclipse/jdt/internal/compiler/ast/MessageSend.java
-419a420
-> 	cleanUpInferenceContexts();
-1063a1065,1073
-> }
-> @Override
-> public void cleanUpInferenceContexts() {
-> 	if (this.inferenceContexts == null)
-> 		return;
-> 	for (Object value : this.inferenceContexts.valueTable)
-> 		if (value != null)
-> 			((InferenceContext18) value).cleanUp();
-> 	this.inferenceContexts = null;
-diff -r a/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java
-167a168
-> 		cleanUpInferenceContexts();
-diff -r a/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java b/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java
-16a17,18
-> import java.util.ArrayList;
-> 
-59a62
-> 	private ArrayList<Invocation> inferredInvocations;
-973a977,988
-> }
-> public void registerInferredInvocation(Invocation invocation) {
-> 	if (this.inferredInvocations == null)
-> 		this.inferredInvocations = new ArrayList<>();
-> 	this.inferredInvocations.add(invocation);
-> }
-> public void cleanUpInferenceContexts() {
-> 	if (this.inferredInvocations == null)
-> 		return;
-> 	for (Invocation invocation : this.inferredInvocations)
-> 		invocation.cleanUpInferenceContexts();
-> 	this.inferredInvocations = null;
-diff -r a/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java b/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java
-212a213,214
-> 		if (site instanceof Invocation)
-> 			scope.compilationUnitScope().registerInferredInvocation((Invocation) site);
-1615c1617,1623
-< }
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java
+--- a/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java	2016-01-07 13:18:38.548119018 -0800
+@@ -167,6 +167,7 @@
+ }
+ 
+ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
++	cleanUpInferenceContexts();
+ 	if (!valueRequired)
+ 		currentScope.problemReporter().unusedObjectAllocation(this);
+ 
+@@ -720,6 +721,17 @@
+ 		return null;
+ 	return (InferenceContext18) this.inferenceContexts.get(method);
+ }
++
++@Override
++public void cleanUpInferenceContexts() {
++	if (this.inferenceContexts == null)
++		return;
++	for (Object value : this.inferenceContexts.valueTable)
++		if (value != null)
++			((InferenceContext18) value).cleanUp();
++	this.inferenceContexts = null;
++}
++
+ //-- interface InvocationSite: --
+ public ExpressionContext getExpressionContext() {
+ 	return this.expressionContext;
+Only in b/org/eclipse/jdt/internal/compiler/ast: AllocationExpression.java.orig
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java b/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java
+--- a/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java	2016-01-07 13:18:38.548119018 -0800
+@@ -158,6 +158,9 @@
+ 	}
+ 
+ 	this.suppressWarningAnnotations = null;
++
++	if (this.scope != null)
++		this.scope.cleanUpInferenceContexts();
+ }
+ 
+ private void cleanUp(TypeDeclaration type) {
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java b/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java
+--- a/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java	2016-01-07 13:18:38.548119018 -0800
+@@ -508,6 +508,11 @@
+ 		return null;
+ 	}
+ 	
++	@Override
++	public void cleanUpInferenceContexts() {
++		// Nothing to do.
++	}
++
+ 	public Expression[] arguments() {
+ 		return this.arguments;
+ 	}
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/Invocation.java b/org/eclipse/jdt/internal/compiler/ast/Invocation.java
+--- a/org/eclipse/jdt/internal/compiler/ast/Invocation.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/Invocation.java	2016-01-07 13:18:38.548119018 -0800
+@@ -42,6 +42,8 @@
+ 	 */
+ 	InferenceContext18 getInferenceContext(ParameterizedMethodBinding method);
+ 
++	void cleanUpInferenceContexts();
++
+ 	/** Record result against target type */
+ 	void registerResult(TypeBinding targetType, MethodBinding method);
+ 
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java b/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java
+--- a/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java	2014-12-30 08:05:34.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java	2016-01-07 13:18:38.552119058 -0800
+@@ -463,10 +463,14 @@
+ 		if (targetType instanceof ReferenceBinding && targetType.isValidBinding()) {
+ 			ParameterizedTypeBinding withWildCards = InferenceContext18.parameterizedWithWildcard(targetType);
+ 			if (withWildCards != null) {
+-				if (!argumentTypesElided)
+-					return new InferenceContext18(blockScope).inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
+-				else
++				if (!argumentTypesElided) {
++					InferenceContext18 freshInferenceContext = new InferenceContext18(blockScope);
++					ReferenceBinding inferredType = freshInferenceContext.inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
++					freshInferenceContext.cleanUp();
++					return inferredType;
++				} else {
+ 					return findGroundTargetTypeForElidedLambda(blockScope, withWildCards);
++				}
+ 			}
+ 			return (ReferenceBinding) targetType;
+ 		}
+Only in b/org/eclipse/jdt/internal/compiler/ast: LambdaExpression.java.orig
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/MessageSend.java b/org/eclipse/jdt/internal/compiler/ast/MessageSend.java
+--- a/org/eclipse/jdt/internal/compiler/ast/MessageSend.java	2015-01-06 08:05:36.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/MessageSend.java	2016-01-07 13:18:38.552119058 -0800
+@@ -417,6 +417,7 @@
+  * @param valueRequired boolean
+  */
+ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
++	cleanUpInferenceContexts();
+ 	int pc = codeStream.position;
+ 	// generate receiver/enclosing instance access
+ 	MethodBinding codegenBinding = this.binding instanceof PolymorphicMethodBinding ? this.binding : this.binding.original();
+@@ -1062,6 +1063,15 @@
+ 		return null;
+ 	return (InferenceContext18) this.inferenceContexts.get(method);
+ }
++@Override
++public void cleanUpInferenceContexts() {
++	if (this.inferenceContexts == null)
++		return;
++	for (Object value : this.inferenceContexts.valueTable)
++		if (value != null)
++			((InferenceContext18) value).cleanUp();
++	this.inferenceContexts = null;
++}
+ public Expression[] arguments() {
+ 	return this.arguments;
+ }
+Only in b/org/eclipse/jdt/internal/compiler/ast: MessageSend.java.orig
+diff -u -r a/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java
+--- a/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java	2016-01-07 13:18:38.552119058 -0800
+@@ -165,6 +165,7 @@
+ 	}
+ 
+ 	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
++		cleanUpInferenceContexts();
+ 		if (!valueRequired)
+ 			currentScope.problemReporter().unusedObjectAllocation(this);
+ 		int pc = codeStream.position;
+Only in b/org/eclipse/jdt/internal/compiler/ast: QualifiedAllocationExpression.java.orig
+diff -u -r a/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java b/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java
+--- a/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java	2014-12-07 20:01:54.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java	2016-01-07 13:18:38.552119058 -0800
+@@ -14,6 +14,8 @@
+  *******************************************************************************/
+ package org.eclipse.jdt.internal.compiler.lookup;
+ 
++import java.util.ArrayList;
++
+ import org.eclipse.jdt.core.compiler.CharOperation;
+ import org.eclipse.jdt.internal.compiler.ast.*;
+ import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+@@ -57,6 +59,7 @@
+ 	private boolean skipCachingImports;
+ 
+ 	boolean connectingHierarchy;
++	private ArrayList<Invocation> inferredInvocations;
+ 
+ public CompilationUnitScope(CompilationUnitDeclaration unit, LookupEnvironment environment) {
+ 	super(COMPILATION_UNIT_SCOPE, null);
+@@ -972,4 +975,16 @@
+ 		return (this.fPackage.defaultNullness & location) != 0;
+ 	return false;
+ }
++public void registerInferredInvocation(Invocation invocation) {
++	if (this.inferredInvocations == null)
++		this.inferredInvocations = new ArrayList<>();
++	this.inferredInvocations.add(invocation);
++}
++public void cleanUpInferenceContexts() {
++	if (this.inferredInvocations == null)
++		return;
++	for (Invocation invocation : this.inferredInvocations)
++		invocation.cleanUpInferenceContexts();
++	this.inferredInvocations = null;
++}
+ }
+diff -u -r a/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java b/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java
+--- a/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java	2015-01-13 08:05:14.000000000 -0800
++++ b/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java	2016-01-07 13:19:21.080545128 -0800
+@@ -210,6 +210,8 @@
+ 		this.invocationArguments = arguments;
+ 		this.currentInvocation = site;
+ 		this.outerContext = outerContext;
++		if (site instanceof Invocation)
++			scope.compilationUnitScope().registerInferredInvocation((Invocation) site);
+ 	}
+ 
+ 	public InferenceContext18(Scope scope) {
+@@ -1612,4 +1614,8 @@
+ 			}
+ 		}
+ 	}
+-}
 \ No newline at end of file
----
-> 
->         public void cleanUp() {
->                 this.b2 = null;
->                 this.currentBounds = null;
->         }
-> 
-> }
++        public void cleanUp() {
++                this.b2 = null;
++                this.currentBounds = null;
++        }
++}
