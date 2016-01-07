@@ -1,0 +1,95 @@
+diff -r a/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/AllocationExpression.java
+169a170
+> 	cleanUpInferenceContexts();
+722a724,734
+> 
+> @Override
+> public void cleanUpInferenceContexts() {
+> 	if (this.inferenceContexts == null)
+> 		return;
+> 	for (Object value : this.inferenceContexts.valueTable)
+> 		if (value != null)
+> 			((InferenceContext18) value).cleanUp();
+> 	this.inferenceContexts = null;
+> }
+> 
+diff -r a/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java b/org/eclipse/jdt/internal/compiler/ast/CompilationUnitDeclaration.java
+160a161,163
+> 
+> 	if (this.scope != null)
+> 		this.scope.cleanUpInferenceContexts();
+diff -r a/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java b/org/eclipse/jdt/internal/compiler/ast/ExplicitConstructorCall.java
+510a511,515
+> 	@Override
+> 	public void cleanUpInferenceContexts() {
+> 		// Nothing to do.
+> 	}
+> 
+diff -r a/org/eclipse/jdt/internal/compiler/ast/Invocation.java b/org/eclipse/jdt/internal/compiler/ast/Invocation.java
+44a45,46
+> 	void cleanUpInferenceContexts();
+> 
+diff -r a/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java b/org/eclipse/jdt/internal/compiler/ast/LambdaExpression.java
+466,468c466,471
+< 				if (!argumentTypesElided)
+< 					return new InferenceContext18(blockScope).inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
+< 				else
+---
+> 				if (!argumentTypesElided) {
+> 					InferenceContext18 freshInferenceContext = new InferenceContext18(blockScope);
+> 					ReferenceBinding inferredType = freshInferenceContext.inferFunctionalInterfaceParameterization(this, blockScope, withWildCards);
+> 					freshInferenceContext.cleanUp();
+> 					return inferredType;
+> 				} else {
+469a473
+> 				}
+diff -r a/org/eclipse/jdt/internal/compiler/ast/MessageSend.java b/org/eclipse/jdt/internal/compiler/ast/MessageSend.java
+419a420
+> 	cleanUpInferenceContexts();
+1063a1065,1073
+> }
+> @Override
+> public void cleanUpInferenceContexts() {
+> 	if (this.inferenceContexts == null)
+> 		return;
+> 	for (Object value : this.inferenceContexts.valueTable)
+> 		if (value != null)
+> 			((InferenceContext18) value).cleanUp();
+> 	this.inferenceContexts = null;
+diff -r a/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java b/org/eclipse/jdt/internal/compiler/ast/QualifiedAllocationExpression.java
+167a168
+> 		cleanUpInferenceContexts();
+diff -r a/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java b/org/eclipse/jdt/internal/compiler/lookup/CompilationUnitScope.java
+16a17,18
+> import java.util.ArrayList;
+> 
+59a62
+> 	private ArrayList<Invocation> inferredInvocations;
+973a977,988
+> }
+> public void registerInferredInvocation(Invocation invocation) {
+> 	if (this.inferredInvocations == null)
+> 		this.inferredInvocations = new ArrayList<>();
+> 	this.inferredInvocations.add(invocation);
+> }
+> public void cleanUpInferenceContexts() {
+> 	if (this.inferredInvocations == null)
+> 		return;
+> 	for (Invocation invocation : this.inferredInvocations)
+> 		invocation.cleanUpInferenceContexts();
+> 	this.inferredInvocations = null;
+diff -r a/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java b/org/eclipse/jdt/internal/compiler/lookup/InferenceContext18.java
+212a213,214
+> 		if (site instanceof Invocation)
+> 			scope.compilationUnitScope().registerInferredInvocation((Invocation) site);
+1615c1617,1623
+< }
+\ No newline at end of file
+---
+> 
+>         public void cleanUp() {
+>                 this.b2 = null;
+>                 this.currentBounds = null;
+>         }
+> 
+> }
