@@ -1,4 +1,4 @@
-Building org.eclipse.jdt.core.source_3.11-CUSTOM-GWT-2.8.jar.
+Building org.eclipse.jdt.core.source_3.11.2-CUSTOM-GWT-2.8-20160205.jar.
 
 This is a build of commit f1a67d3d2d339dd7edfd7ce2f4f3c9404d13fe09 with
 commit 60d259d5b1e0ff710248aa3b7ae16581d3024e86 cherry-picked to handle
@@ -6,8 +6,12 @@ the Java 8 inference memory leaks.
 
 
   git clone git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
-  git checkout 60d259d5b1e0ff710248aa3b7ae16581d3024e86
+  # Checkout 4.5 RC
+  git checkout a7bba8b15a21819e2d9a55326f471b4c1f242e2e
   git checkout -b custom-gwt-2.8-branch
+  # Fix memory leak
   git cherry-pick 60d259d5b1e0ff710248aa3b7ae16581d3024e86
+  # Fix type inference bug (safe uncommitted fix)
+  git fetch git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core refs/changes/06/62706/1 && git cherry-pick FETCH_HEAD
   mvn -P build-individual-bundles package
 
