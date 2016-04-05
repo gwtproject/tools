@@ -1,0 +1,18 @@
+To recreate the rebased compiler.jar file:
+
+1) run JarJar with the follow parameters:
+
+  process compiler.jarjar closure-compiler-unshaded-v20160315.jar compiler-rebased.jar
+
+2) Strip all unnecesary files
+  zip compiler-rebased.jar -d META-INF/*
+  zip compiler-rebased.jar -d com/google/JsComp.gwt.xml
+  zip compiler-rebased.jar -d com/google/gwt/thirdparty/javascript/jscomp/gwt/
+
+3) Split the resulting jar into to
+  - compiler-rebased.jar
+      externs.zip
+      com.google.gwt.thirdparty.javascript.*
+  - sourcemap-rebased.jar
+      com.google.gwt.thirdparty.debugging.*
+
