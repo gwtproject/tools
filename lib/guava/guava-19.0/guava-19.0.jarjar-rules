@@ -1,1 +1,3 @@
 rule com.google.common.**  com.google.gwt.thirdparty.guava.common.@1
+rule com.google.thirdparty.**  com.google.gwt.thirdparty.guava.thirdparty.@1
+zap *
