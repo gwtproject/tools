@@ -1,0 +1,15 @@
+Building org.eclipse.jdt.core.source_3.13.50-CUSTOM-GWT-java-9-20171215.jar.
+
+This is a build of commit f1a67d3d2d339dd7edfd7ce2f4f3c9404d13fe09 with
+commit 60d259d5b1e0ff710248aa3b7ae16581d3024e86 cherry-picked to handle
+the Java 8 inference memory leaks.
+
+
+  git clone git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
+  # Checkout 4.7.1.a
+  git checkout R_4_7_1a
+  git checkout -b custom-gwt-java-9-branch
+  # Fix typechecking performance regression 
+  git cherry-pick 48a3a3eb7ea3d5a31b91fda5c892849f5bc403c6
+  mvn -P build-individual-bundles package
+
