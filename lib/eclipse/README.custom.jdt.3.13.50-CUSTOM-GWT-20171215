@@ -1,8 +1,7 @@
-Building org.eclipse.jdt.core.source_3.13.50-CUSTOM-GWT-java-9-20171215.jar.
+Building org.eclipse.jdt.core_3.13.50-CUSTOM-GWT-20171215.jar.
 
-This is a build of commit f1a67d3d2d339dd7edfd7ce2f4f3c9404d13fe09 with
-commit 60d259d5b1e0ff710248aa3b7ae16581d3024e86 cherry-picked to handle
-the Java 8 inference memory leaks.
+This is a build of commit R_4_7_1a with commit 48a3a3eb7ea3d5a31b91fda5c892849f5bc403c6
+cherry-picked to handle the Java 8 inference memory leaks.
 
 
   git clone git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
