@@ -1,0 +1,15 @@
+Building org.eclipse.jdt.core_3.13.50-CUSTOM-GWT-20171215.jar.
+
+This is a build of commit f40e2bb974dadc83b0c5a61e5e45b249fc2a95c0 (R4_7_2) with
+commit 48a3a3eb7ea3d5a31b91fda5c892849f5bc403c6 cherry-picked to handle
+the Java 9 slowness.
+
+
+  git clone git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
+  # Checkout 4.7.2
+  git checkout R_4_7_2
+  git checkout -b custom-gwt-java-9-branch
+  # Fix typechecking performance regression 
+  git cherry-pick 48a3a3eb7ea3d5a31b91fda5c892849f5bc403c6
+  mvn -P build-individual-bundles package
+
