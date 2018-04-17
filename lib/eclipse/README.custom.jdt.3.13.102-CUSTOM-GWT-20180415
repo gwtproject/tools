@@ -1,0 +1,15 @@
+Building org.eclipse.jdt.core_3.13.102-CUSTOM-GWT-20180415.jar.
+
+This is a build of commit 751965ed73c45ddb52525a026ecee4c803657a98 (R4_7_3a) with
+commit ee0a80596e3905780d1e1d67a228c75fe795051c cherry-picked to handle
+https://bugs.eclipse.org/bugs/show_bug.cgi?id=533488.
+
+
+  git clone git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
+  # Checkout 4.7.3a
+  git checkout R_4_7_3a
+  git checkout -b custom-gwt-java-10-branch
+  # Fix bug #533488
+  git cherry-pick ee0a80596e3905780d1e1d67a228c75fe795051c
+  mvn -P build-individual-bundles package
+
