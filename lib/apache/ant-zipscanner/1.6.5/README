@@ -1,0 +1,10 @@
+Fork of ant 1.6.5, including only the types required to scan a zip file, with
+many extra methods commented out.
+
+Created by building the https://github.com/vertispan/ant-zipscanner repo and
+copying the output jar, source jar into here. Upgrading to a new ant version
+will require making a new branch in that repository, copying over the requisite
+files from ant, and pruning Project/Reference/etc references that are not
+needed just to scan a zip file, and then removing unused methods to further
+limit the API surface area.
+
