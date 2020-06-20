@@ -1,0 +1,15 @@
+To rebuild ant-zipscanner, follow those steps, in a temporary directory:
+
+    unzip -aa $GWT_TOOLS/lib/apache/ant-1.6.5-src.zip
+
+    patch -p0 -i $GWT_TOOLS/lib/apache/ant-zipscanner-1.6.5-1.patch
+
+    javac org/apache/tools/ant/types/ZipScanner.java
+    # this assumes JDK 8; if using JDK 9+, pass an additional --release 8
+
+    jar -Mcvf ant-zipscanner-1.6.5-1.jar $(find . -name '*.class')
+
+    java -jar $GWT_TOOLS/lib/tonicsystems/jarjar-1.0rc8.jar process \
+        $GWT_TOOLS/lib/apache/ant-zipscanner/ant-zipscanner-1.6.5.jarjar \
+        ant-zipscanner-1.6.5-1.jar \
+        $GWT_TOOLS/lib/apache/ant-zipscanner/ant-zipscanner-1.6.5-1-rebased.jar
