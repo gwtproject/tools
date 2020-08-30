@@ -1,0 +1,5 @@
+Jetty 9.4.31.v20200723 uber jar from https://repo1.maven.org/maven2/org/eclipse/jetty/aggregate/jetty-all/9.4.31.v20200723/jetty-all-9.4.31.v20200723-uber.jar
+with next customizations:
+
+- removed classes from javax.* package;
+- removed /META-INF/services/org.eclipse.jetty.security.Authenticator$Factory since uber doesn't contain required class JaspiAuthenticatorFactory;
