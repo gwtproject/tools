@@ -1,0 +1,18 @@
+To recreate the sourcemap-rebased.jar
+
+1) Check out closure-compiler from git
+
+  git clone git@github.com:google/closure-compiler.git
+
+2) Apply the two git patches in this directory:
+
+  git am $GWT_TOOLS/lib/jscomp/20231112/0001-Implement-OriginalMapping-as-an-autovalue-rather-tha.patch
+  git am $GWT_TOOLS/lib/jscomp/20231112/0002-Build-tooling-to-produce-a-proto-free-sourcemap-reba.patch
+
+3) Run bazel to produce the new rebased jar:
+
+  bazel build //src/com/google/debugging/sourcemap:sourcemaps-rebased
+
+4) Copy the resulting jar into its own versioned directory along with
+   an updated version of this file and the patches above.
+

@@ -1,0 +1,585 @@
+From 9597ac199c3fd6befbcd2ccb9555b607996ebe7f Mon Sep 17 00:00:00 2001
+From: Colin Alworth <colin@colinalworth.com>
+Date: Sun, 25 Feb 2024 15:45:03 -0600
+Subject: [PATCH 1/2] Implement OriginalMapping as an autovalue rather than
+ protobuf message
+
+Enables downstream projects to depend only on closure-compiler (and not
+protobuf-java) to read and write sourcemaps.
+
+The proto file has shrunk over time, and only has a single message type,
+used to communicate details discovered when reading a sourcemap from JSON,
+composed into a message structure, and then back into separate values. The
+proto-based implementation doesn't serialize or deserialize, and doesn't
+appear to be involved in CompilerState even indirectly.
+
+The replacement is slightly stricter - rather than marking each field as
+optional, only the identifier is optional.
+---
+ BUILD.bazel                                   |  2 -
+ .../debugging/sourcemap/OriginalMapping.java  | 55 +++++++++++++++++++
+ .../sourcemap/SourceMapConsumerV3.java        | 16 +++---
+ .../debugging/sourcemap/SourceMapping.java    |  2 -
+ .../sourcemap/SourceMappingReversable.java    |  2 -
+ .../debugging/sourcemap/proto/BUILD.bazel     | 31 -----------
+ .../debugging/sourcemap/proto/mapping.proto   | 34 ------------
+ .../google/javascript/jscomp/Compiler.java    |  2 +-
+ .../javascript/jscomp/JsMessageVisitor.java   |  2 +-
+ .../jscomp/JsonErrorReportGenerator.java      |  2 +-
+ .../jscomp/LightweightMessageFormatter.java   |  2 +-
+ .../jscomp/SourceExcerptProvider.java         |  2 +-
+ .../javascript/jscomp/SourceFileMapping.java  |  2 +-
+ .../google/javascript/jscomp/SourceMap.java   | 10 ++--
+ .../testing/SimpleSourceExcerptProvider.java  |  2 +-
+ .../sourcemap/SourceMapConsumerV3Test.java    |  6 +-
+ .../sourcemap/SourceMapTestCase.java          |  9 ++-
+ .../javascript/jscomp/CompilerTest.java       |  9 ++-
+ .../LightweightMessageFormatterTest.java      |  5 +-
+ .../bundle/CoverageInstrumenterTest.java      |  7 +--
+ 20 files changed, 91 insertions(+), 111 deletions(-)
+ create mode 100644 src/com/google/debugging/sourcemap/OriginalMapping.java
+ delete mode 100644 src/com/google/debugging/sourcemap/proto/BUILD.bazel
+ delete mode 100644 src/com/google/debugging/sourcemap/proto/mapping.proto
+
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 78a1a0484..b6ed53e17 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -182,7 +182,6 @@ oss_java_library(
+             ],
+         ),
+         deps = [
+-            "//src/com/google/debugging/sourcemap/proto:mapping_java_proto",
+             "//src/com/google/javascript/jscomp/conformance:conformance_java_proto",
+             "//src/com/google/javascript/jscomp/instrumentation/reporter/proto:profile_java_proto",
+             "//src/com/google/javascript/rhino/typed_ast:typed_ast_java_proto",
+@@ -249,7 +248,6 @@ gen_java_tests(
+     deps = [
+         ":compiler_lib",
+         ":compiler_tests_resources",
+-        "//src/com/google/debugging/sourcemap/proto:mapping_java_proto",
+         "//src/com/google/javascript/jscomp/conformance:conformance_java_proto",
+         "//src/com/google/javascript/jscomp/instrumentation/reporter/proto:profile_java_proto",
+         "//src/com/google/javascript/rhino/typed_ast:typed_ast_java_proto",
+diff --git a/src/com/google/debugging/sourcemap/OriginalMapping.java b/src/com/google/debugging/sourcemap/OriginalMapping.java
+new file mode 100644
+index 000000000..4a818a1c6
+--- /dev/null
++++ b/src/com/google/debugging/sourcemap/OriginalMapping.java
+@@ -0,0 +1,55 @@
++package com.google.debugging.sourcemap;
++
++import com.google.auto.value.AutoValue;
++import java.util.Optional;
++
++/**
++ * Simple representation of information made available when parsing a sourcemap file.
++ */
++@AutoValue
++public abstract class OriginalMapping {
++    public enum Precision {
++        EXACT,
++        APPROXIMATE_LINE;
++    }
++
++    public abstract Builder toBuilder();
++    public static Builder builder() {
++        return new AutoValue_OriginalMapping.Builder();
++    }
++
++    /**
++     * The original source file.
++     */
++    public abstract String getOriginalFile();
++
++    /**
++     * The line in the original file.
++     */
++    public abstract int getLineNumber();
++
++    /**
++     * The column number on the line.
++     */
++    public abstract int getColumnPosition();
++
++    /**
++     * The original name of the identifier, if any.
++     */
++    public abstract Optional<String> getIdentifier();
++
++    /**
++     * The type of retrieval performed to get this mapping.
++     */
++    public abstract Precision getPrecision();
++
++    @AutoValue.Builder
++    public abstract static class Builder {
++        public abstract Builder setOriginalFile(String originalFile);
++        public abstract Builder setLineNumber(int lineNumber);
++        public abstract Builder setColumnPosition(int columnPosition);
++        public abstract Builder setIdentifier(String identifier);
++        public abstract Builder setPrecision(Precision precision);
++        public abstract OriginalMapping build();
++    }
++}
+diff --git a/src/com/google/debugging/sourcemap/SourceMapConsumerV3.java b/src/com/google/debugging/sourcemap/SourceMapConsumerV3.java
+index f363c5f89..eef9726e5 100644
+--- a/src/com/google/debugging/sourcemap/SourceMapConsumerV3.java
++++ b/src/com/google/debugging/sourcemap/SourceMapConsumerV3.java
+@@ -21,8 +21,6 @@ import static com.google.common.base.Preconditions.checkState;
+ import com.google.common.base.Preconditions;
+ import com.google.common.collect.Iterables;
+ import com.google.debugging.sourcemap.Base64VLQ.CharIterator;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping.Precision;
+ import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+@@ -169,7 +167,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer, SourceMappi
+ 
+     int index = search(entries, column, 0, entries.size() - 1);
+     Preconditions.checkState(index >= 0, "unexpected:%s", index);
+-    return getOriginalMappingForEntry(entries.get(index), Precision.EXACT);
++    return getOriginalMappingForEntry(entries.get(index), OriginalMapping.Precision.EXACT);
+   }
+ 
+   @Override
+@@ -429,17 +427,17 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer, SourceMappi
+       lineNumber--;
+     } while (lines.get(lineNumber) == null);
+     ArrayList<Entry> entries = lines.get(lineNumber);
+-    return getOriginalMappingForEntry(Iterables.getLast(entries), Precision.APPROXIMATE_LINE);
++    return getOriginalMappingForEntry(Iterables.getLast(entries), OriginalMapping.Precision.APPROXIMATE_LINE);
+   }
+ 
+   /** Creates an "OriginalMapping" object for the given entry object. */
+-  private @Nullable OriginalMapping getOriginalMappingForEntry(Entry entry, Precision precision) {
++  private @Nullable OriginalMapping getOriginalMappingForEntry(Entry entry, OriginalMapping.Precision precision) {
+     if (entry.getSourceFileId() == UNMAPPED) {
+       return null;
+     } else {
+       // Adjust the line/column here to be start at 1.
+       OriginalMapping.Builder x =
+-          OriginalMapping.newBuilder()
++          OriginalMapping.builder()
+               .setOriginalFile(sources[entry.getSourceFileId()])
+               .setLineNumber(entry.getSourceLine() + 1)
+               .setColumnPosition(entry.getSourceColumn() + 1)
+@@ -469,7 +467,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer, SourceMappi
+ 
+             reverseSourceMapping.computeIfAbsent(
+                 originalFile,
+-                (String k) -> new LinkedHashMap<Integer, Collection<OriginalMapping>>());
++                (String k) -> new LinkedHashMap<>());
+ 
+             Map<Integer, Collection<OriginalMapping>> lineToCollectionMap =
+                 reverseSourceMapping.get(originalFile);
+@@ -478,14 +476,14 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer, SourceMappi
+ 
+             if (!lineToCollectionMap.containsKey(sourceLine)) {
+               lineToCollectionMap.put(sourceLine,
+-                  new ArrayList<OriginalMapping>(1));
++                  new ArrayList<>(1));
+             }
+ 
+             Collection<OriginalMapping> mappings =
+                 lineToCollectionMap.get(sourceLine);
+ 
+             OriginalMapping.Builder builder =
+-                OriginalMapping.newBuilder()
++                OriginalMapping.builder()
+                     .setLineNumber(targetLine)
+                     .setColumnPosition(entry.getGeneratedColumn());
+ 
+diff --git a/src/com/google/debugging/sourcemap/SourceMapping.java b/src/com/google/debugging/sourcemap/SourceMapping.java
+index db2af2e6b..b7ba43bf3 100644
+--- a/src/com/google/debugging/sourcemap/SourceMapping.java
++++ b/src/com/google/debugging/sourcemap/SourceMapping.java
+@@ -16,8 +16,6 @@
+ 
+ package com.google.debugging.sourcemap;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-
+ /**
+  * Interface for provide a way of mapping (line, column) positions back to
+  * positions in the original (uncompiled) source code.
+diff --git a/src/com/google/debugging/sourcemap/SourceMappingReversable.java b/src/com/google/debugging/sourcemap/SourceMappingReversable.java
+index b2ab4ae25..1c0583939 100644
+--- a/src/com/google/debugging/sourcemap/SourceMappingReversable.java
++++ b/src/com/google/debugging/sourcemap/SourceMappingReversable.java
+@@ -16,8 +16,6 @@
+ 
+ package com.google.debugging.sourcemap;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-
+ import java.util.Collection;
+ 
+ /**
+diff --git a/src/com/google/debugging/sourcemap/proto/BUILD.bazel b/src/com/google/debugging/sourcemap/proto/BUILD.bazel
+deleted file mode 100644
+index 2cd95abfe..000000000
+--- a/src/com/google/debugging/sourcemap/proto/BUILD.bazel
++++ /dev/null
+@@ -1,31 +0,0 @@
+-# Copyright 2020 Google LLC
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#     https://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-load("@rules_java//java:defs.bzl", "java_proto_library")
+-load("@protobuf_proto_rules//proto:defs.bzl", "proto_library")
+-
+-package(
+-    default_visibility = ["//visibility:public"],
+-    licenses = ["notice"],
+-)
+-
+-proto_library(
+-    name = "mapping_proto",
+-    srcs = ["mapping.proto"],
+-)
+-
+-java_proto_library(
+-    name = "mapping_java_proto",
+-    deps = [":mapping_proto"],
+-)
+diff --git a/src/com/google/debugging/sourcemap/proto/mapping.proto b/src/com/google/debugging/sourcemap/proto/mapping.proto
+deleted file mode 100644
+index a1040b0db..000000000
+--- a/src/com/google/debugging/sourcemap/proto/mapping.proto
++++ /dev/null
+@@ -1,34 +0,0 @@
+-// Copyright 2009 Google Inc. All rights reserved.
+-//
+-// Protocol Buffer definitions of the various source map structures.
+-//
+-// Author: jschorr@google.com (Joseph Schorr)
+-
+-syntax = "proto2";
+-
+-package sourcemap;
+-
+-option java_package = "com.google.debugging.sourcemap.proto";
+-
+-message OriginalMapping {
+-  // The original source file.
+-  optional string original_file = 1;
+-
+-  // The line in the original file.
+-  optional int32 line_number = 2;
+-
+-  // The column number on the line.
+-  optional int32 column_position = 3;
+-
+-  // The original name of the identifier.
+-  optional string identifier = 4;
+-
+-  enum Precision {
+-    UNKNOWN_PRECISION = 0;
+-    EXACT = 1;
+-    APPROXIMATE_LINE = 2;
+-  }
+-
+-  // The type of retrieval performed to get this mapping
+-  optional Precision precision = 5 [default = UNKNOWN_PRECISION];
+-}
+diff --git a/src/com/google/javascript/jscomp/Compiler.java b/src/com/google/javascript/jscomp/Compiler.java
+index ce55046f4..3deb2c267 100644
+--- a/src/com/google/javascript/jscomp/Compiler.java
++++ b/src/com/google/javascript/jscomp/Compiler.java
+@@ -36,8 +36,8 @@ import com.google.common.collect.LinkedHashMultimap;
+ import com.google.common.collect.Multimap;
+ import com.google.common.collect.Streams;
+ import com.google.common.io.BaseEncoding;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.debugging.sourcemap.SourceMapConsumerV3;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+ import com.google.errorprone.annotations.CanIgnoreReturnValue;
+ import com.google.javascript.jscomp.CodePrinter.LicenseTracker;
+ import com.google.javascript.jscomp.CompilerInput.ModuleType;
+diff --git a/src/com/google/javascript/jscomp/JsMessageVisitor.java b/src/com/google/javascript/jscomp/JsMessageVisitor.java
+index c8aa9ce3e..326be26ce 100644
+--- a/src/com/google/javascript/jscomp/JsMessageVisitor.java
++++ b/src/com/google/javascript/jscomp/JsMessageVisitor.java
+@@ -25,7 +25,7 @@ import com.google.common.base.Ascii;
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.ImmutableSet;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.javascript.jscomp.JsMessage.Hash;
+ import com.google.javascript.jscomp.JsMessage.Part;
+ import com.google.javascript.jscomp.JsMessage.PlaceholderFormatException;
+diff --git a/src/com/google/javascript/jscomp/JsonErrorReportGenerator.java b/src/com/google/javascript/jscomp/JsonErrorReportGenerator.java
+index 9cc2b35df..14545c65f 100644
+--- a/src/com/google/javascript/jscomp/JsonErrorReportGenerator.java
++++ b/src/com/google/javascript/jscomp/JsonErrorReportGenerator.java
+@@ -21,7 +21,7 @@ import static java.lang.Math.min;
+ import static java.nio.charset.StandardCharsets.UTF_8;
+ 
+ import com.google.common.annotations.GwtIncompatible;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.gson.stream.JsonWriter;
+ import com.google.javascript.jscomp.LightweightMessageFormatter.LineNumberingFormatter;
+ import com.google.javascript.jscomp.SortingErrorManager.ErrorReportGenerator;
+diff --git a/src/com/google/javascript/jscomp/LightweightMessageFormatter.java b/src/com/google/javascript/jscomp/LightweightMessageFormatter.java
+index 7f0320956..7c0f92683 100644
+--- a/src/com/google/javascript/jscomp/LightweightMessageFormatter.java
++++ b/src/com/google/javascript/jscomp/LightweightMessageFormatter.java
+@@ -24,7 +24,7 @@ import static java.lang.Math.min;
+ 
+ import com.google.common.base.Splitter;
+ import com.google.common.base.Strings;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.errorprone.annotations.CanIgnoreReturnValue;
+ import com.google.javascript.jscomp.SourceExcerptProvider.ExcerptFormatter;
+ import com.google.javascript.jscomp.SourceExcerptProvider.SourceExcerpt;
+diff --git a/src/com/google/javascript/jscomp/SourceExcerptProvider.java b/src/com/google/javascript/jscomp/SourceExcerptProvider.java
+index a4e58b95b..65d4604c4 100644
+--- a/src/com/google/javascript/jscomp/SourceExcerptProvider.java
++++ b/src/com/google/javascript/jscomp/SourceExcerptProvider.java
+@@ -15,7 +15,7 @@
+  */
+ package com.google.javascript.jscomp;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import org.jspecify.nullness.Nullable;
+ 
+ /**
+diff --git a/src/com/google/javascript/jscomp/SourceFileMapping.java b/src/com/google/javascript/jscomp/SourceFileMapping.java
+index 0b77c02eb..46d3b0a93 100644
+--- a/src/com/google/javascript/jscomp/SourceFileMapping.java
++++ b/src/com/google/javascript/jscomp/SourceFileMapping.java
+@@ -15,7 +15,7 @@
+  */
+ package com.google.javascript.jscomp;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import org.jspecify.nullness.Nullable;
+ 
+ /**
+diff --git a/src/com/google/javascript/jscomp/SourceMap.java b/src/com/google/javascript/jscomp/SourceMap.java
+index bd1eade70..f1f3f43e0 100644
+--- a/src/com/google/javascript/jscomp/SourceMap.java
++++ b/src/com/google/javascript/jscomp/SourceMap.java
+@@ -19,10 +19,10 @@ package com.google.javascript.jscomp;
+ import com.google.common.base.Predicate;
+ import com.google.common.collect.ImmutableList;
+ import com.google.debugging.sourcemap.FilePosition;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.debugging.sourcemap.SourceMapFormat;
+ import com.google.debugging.sourcemap.SourceMapGenerator;
+ import com.google.debugging.sourcemap.SourceMapGeneratorFactory;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+ import com.google.javascript.rhino.Node;
+ import com.google.javascript.rhino.StaticSourceFile;
+ import java.io.IOException;
+@@ -30,6 +30,8 @@ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
++import java.util.Optional;
++
+ import org.jspecify.nullness.Nullable;
+ 
+ /**
+@@ -193,9 +195,9 @@ public final class SourceMap {
+         sourceFileName = sourceMapping.getOriginalFile();
+         lineNo = sourceMapping.getLineNumber();
+         charNo = sourceMapping.getColumnPosition();
+-        String identifier = sourceMapping.getIdentifier();
+-        if (sourceMapping.hasIdentifier() && !identifier.isEmpty()) {
+-          originalName = identifier;
++        Optional<String> identifier = sourceMapping.getIdentifier();
++        if (identifier.isPresent() && !identifier.get().isEmpty()) {
++          originalName = identifier.get();
+         }
+       }
+     }
+diff --git a/src/com/google/javascript/jscomp/testing/SimpleSourceExcerptProvider.java b/src/com/google/javascript/jscomp/testing/SimpleSourceExcerptProvider.java
+index c8297b349..fccdcd3b6 100644
+--- a/src/com/google/javascript/jscomp/testing/SimpleSourceExcerptProvider.java
++++ b/src/com/google/javascript/jscomp/testing/SimpleSourceExcerptProvider.java
+@@ -16,7 +16,7 @@
+ 
+ package com.google.javascript.jscomp.testing;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.javascript.jscomp.Region;
+ import com.google.javascript.jscomp.SourceExcerptProvider;
+ import com.google.javascript.jscomp.SourceFile;
+diff --git a/test/com/google/debugging/sourcemap/SourceMapConsumerV3Test.java b/test/com/google/debugging/sourcemap/SourceMapConsumerV3Test.java
+index f6cc66290..c1fcaf1f1 100644
+--- a/test/com/google/debugging/sourcemap/SourceMapConsumerV3Test.java
++++ b/test/com/google/debugging/sourcemap/SourceMapConsumerV3Test.java
+@@ -19,8 +19,6 @@ package com.google.debugging.sourcemap;
+ import static com.google.common.truth.Truth.assertThat;
+ 
+ import com.google.common.collect.ImmutableList;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping.Precision;
+ import com.google.gson.Gson;
+ import com.google.gson.JsonArray;
+ import com.google.gson.JsonElement;
+@@ -154,7 +152,7 @@ public final class SourceMapConsumerV3Test {
+ 
+     assertThat(mapping).isNotNull();
+     assertThat(mapping.getLineNumber()).isEqualTo(1);
+-    assertThat(mapping.getPrecision()).isEqualTo(Precision.EXACT);
++    assertThat(mapping.getPrecision()).isEqualTo(OriginalMapping.Precision.EXACT);
+   }
+ 
+   @Test
+@@ -186,6 +184,6 @@ public final class SourceMapConsumerV3Test {
+     assertThat(mapping).isNotNull();
+     // The Previous line mapping was retrieved, and thus it is "approximated"
+     assertThat(mapping.getLineNumber()).isEqualTo(9);
+-    assertThat(mapping.getPrecision()).isEqualTo(Precision.APPROXIMATE_LINE);
++    assertThat(mapping.getPrecision()).isEqualTo(OriginalMapping.Precision.APPROXIMATE_LINE);
+   }
+ }
+diff --git a/test/com/google/debugging/sourcemap/SourceMapTestCase.java b/test/com/google/debugging/sourcemap/SourceMapTestCase.java
+index b464a9c95..04a8cebd0 100644
+--- a/test/com/google/debugging/sourcemap/SourceMapTestCase.java
++++ b/test/com/google/debugging/sourcemap/SourceMapTestCase.java
+@@ -24,7 +24,6 @@ import com.google.common.base.Joiner;
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.ImmutableMap;
+ import com.google.common.reflect.TypeToken;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+ import com.google.gson.Gson;
+ import com.google.javascript.jscomp.Compiler;
+ import com.google.javascript.jscomp.CompilerOptions;
+@@ -268,13 +267,13 @@ public abstract class SourceMapTestCase {
+       // string) it has an original name.
+       if (!inputToken.tokenName.startsWith("STR")) {
+         assertWithMessage("missing name for %s", inputToken.tokenName)
+-            .that(mapping.getIdentifier())
+-            .isNotEmpty();
++            .that(mapping.getIdentifier().isPresent())
++            .isTrue();
+       }
+ 
+       // Ensure that if the mapping has a name, it matches the token.
+-      if (!mapping.getIdentifier().isEmpty()) {
+-        assertThat("__" + inputToken.tokenName + "__").isEqualTo(mapping.getIdentifier());
++      if (mapping.getIdentifier().isPresent()) {
++        assertThat("__" + inputToken.tokenName + "__").isEqualTo(mapping.getIdentifier().get());
+       }
+     }
+   }
+diff --git a/test/com/google/javascript/jscomp/CompilerTest.java b/test/com/google/javascript/jscomp/CompilerTest.java
+index 6fdd5c2be..214ac9c85 100644
+--- a/test/com/google/javascript/jscomp/CompilerTest.java
++++ b/test/com/google/javascript/jscomp/CompilerTest.java
+@@ -34,10 +34,9 @@ import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.Iterables;
+ import com.google.common.io.Files;
+ import com.google.debugging.sourcemap.FilePosition;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.debugging.sourcemap.SourceMapConsumerV3;
+ import com.google.debugging.sourcemap.SourceMapGeneratorV3;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping.Precision;
+ import com.google.javascript.jscomp.Compiler.ScriptNodeLicensesOnlyTracker;
+ import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
+ import com.google.javascript.jscomp.deps.ModuleLoader.ResolutionMode;
+@@ -191,12 +190,12 @@ public final class CompilerTest {
+ 
+     assertThat(compiler.getSourceMapping(normalize("generated_js/example.js"), 3, 3))
+         .isEqualTo(
+-            OriginalMapping.newBuilder()
++            OriginalMapping.builder()
+                 .setOriginalFile(origSourceName)
+                 .setLineNumber(18)
+                 .setColumnPosition(25)
+                 .setIdentifier("testSymbolName")
+-                .setPrecision(Precision.APPROXIMATE_LINE)
++                .setPrecision(OriginalMapping.Precision.APPROXIMATE_LINE)
+                 .build());
+     assertThat(compiler.getSourceLine(origSourceName, 1)).isEqualTo("<div ng-show='foo()'>");
+   }
+@@ -400,7 +399,7 @@ public final class CompilerTest {
+     // FilePosition above is 0-based, whereas OriginalMapping is 1-based, thus 18 & 26.
+     assertThat(mapping.getLineNumber()).isEqualTo(18);
+     assertThat(mapping.getColumnPosition()).isEqualTo(26);
+-    assertThat(mapping.getIdentifier()).isEqualTo("testSymbolName");
++    assertThat(mapping.getIdentifier().get()).isEqualTo("testSymbolName");
+     assertThat(consumer.getOriginalSources()).containsExactly("input.js", "input.ts");
+     assertThat(consumer.getOriginalSourcesContent()).isNull();
+     assertThat(consumer.getOriginalNames()).containsExactly("testSymbolName");
+diff --git a/test/com/google/javascript/jscomp/LightweightMessageFormatterTest.java b/test/com/google/javascript/jscomp/LightweightMessageFormatterTest.java
+index dc511cbf4..3c6675598 100644
+--- a/test/com/google/javascript/jscomp/LightweightMessageFormatterTest.java
++++ b/test/com/google/javascript/jscomp/LightweightMessageFormatterTest.java
+@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
+ import static com.google.common.truth.Truth.assertThat;
+ import static org.junit.Assert.assertThrows;
+ 
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.javascript.jscomp.LightweightMessageFormatter.LineNumberingFormatter;
+ import com.google.javascript.jscomp.SourceExcerptProvider.SourceExcerpt;
+ import com.google.javascript.rhino.IR;
+@@ -35,10 +35,11 @@ public final class LightweightMessageFormatterTest {
+       DiagnosticType.error("TEST_FOO", "error description here");
+   private static final String ORIGINAL_SOURCE_FILE = "original/source.html";
+   private static final OriginalMapping ORIGINAL_SOURCE =
+-      OriginalMapping.newBuilder()
++      OriginalMapping.builder()
+           .setOriginalFile(ORIGINAL_SOURCE_FILE)
+           .setLineNumber(3)
+           .setColumnPosition(15)
++          .setPrecision(OriginalMapping.Precision.EXACT)
+           .build();
+ 
+   @Test
+diff --git a/test/com/google/javascript/jscomp/bundle/CoverageInstrumenterTest.java b/test/com/google/javascript/jscomp/bundle/CoverageInstrumenterTest.java
+index 09b1c701e..cb58d6f29 100644
+--- a/test/com/google/javascript/jscomp/bundle/CoverageInstrumenterTest.java
++++ b/test/com/google/javascript/jscomp/bundle/CoverageInstrumenterTest.java
+@@ -23,9 +23,8 @@ import static org.mockito.Mockito.when;
+ import com.google.common.annotations.GwtIncompatible;
+ import com.google.common.base.Joiner;
+ import com.google.common.collect.ImmutableList;
++import com.google.debugging.sourcemap.OriginalMapping;
+ import com.google.debugging.sourcemap.SourceMapConsumerV3;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
+-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping.Precision;
+ import com.google.javascript.jscomp.JSError;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
+@@ -113,12 +112,12 @@ public final class CoverageInstrumenterTest {
+     OriginalMapping mappingFoX = sourceMap.getMappingForLine(1, result.source.indexOf("x=42") + 1);
+     assertThat(mappingFoX)
+         .isEqualTo(
+-            OriginalMapping.newBuilder()
++            OriginalMapping.builder()
+                 .setOriginalFile(SOURCE_JS.toString())
+                 .setLineNumber(1)
+                 .setColumnPosition(5)
+                 .setIdentifier("x")
+-                .setPrecision(Precision.EXACT)
++                .setPrecision(OriginalMapping.Precision.EXACT)
+                 .build());
+   }
+ }
+-- 
+2.43.0
+

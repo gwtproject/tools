@@ -1,0 +1,54 @@
+From 18aaa9aa2ae176e82910b9ea40449b887d1ee044 Mon Sep 17 00:00:00 2001
+From: Colin Alworth <colin@colinalworth.com>
+Date: Sun, 25 Feb 2024 15:47:37 -0600
+Subject: [PATCH 2/2] Build tooling to produce a proto-free sourcemap-rebased
+ jar for gwt
+
+---
+ .../google/debugging/sourcemap/BUILD.bazel    | 22 +++++++++++++++++++
+ .../google/debugging/sourcemap/rules.jarjar   |  2 ++
+ 2 files changed, 24 insertions(+)
+ create mode 100644 src/com/google/debugging/sourcemap/BUILD.bazel
+ create mode 100644 src/com/google/debugging/sourcemap/rules.jarjar
+
+diff --git a/src/com/google/debugging/sourcemap/BUILD.bazel b/src/com/google/debugging/sourcemap/BUILD.bazel
+new file mode 100644
+index 000000000..9725f08ae
+--- /dev/null
++++ b/src/com/google/debugging/sourcemap/BUILD.bazel
+@@ -0,0 +1,22 @@
++load("@com_github_johnynek_bazel_jar_jar//:jar_jar.bzl", "jar_jar")
++
++java_library(
++    name = "sourcemaps",
++    srcs = glob(['**/*.java'], exclude=["**/super*/**/*.java"]),
++    javacopts = [
++        "-source 8",
++        "-target 8",
++    ],
++    deps = [
++        "@google_bazel_common//third_party/java/auto:value",
++        "@maven//:com_google_code_gson_gson",
++        "@maven//:com_google_errorprone_error_prone_annotations",
++        "@maven//:com_google_guava_guava",
++        "@maven//:org_jspecify_jspecify",
++    ],
++)
++jar_jar(
++    name = "sourcemap-rebased",
++    input_jar = ":sourcemaps",
++    rules = "rules.jarjar",
++)
+\ No newline at end of file
+diff --git a/src/com/google/debugging/sourcemap/rules.jarjar b/src/com/google/debugging/sourcemap/rules.jarjar
+new file mode 100644
+index 000000000..9db3155bb
+--- /dev/null
++++ b/src/com/google/debugging/sourcemap/rules.jarjar
+@@ -0,0 +1,2 @@
++rule com.google.common.**  com.google.gwt.thirdparty.guava.common.@1
++rule com.google.debugging.** com.google.gwt.thirdparty.debugging.@1
+\ No newline at end of file
+-- 
+2.43.0
+
