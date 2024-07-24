@@ -1,8 +1,8 @@
 Steps:
-1. Unzip the GWT zip file
-2. Copy gwt-dev.jar and gwt-user.jar into this directory
-3. Delete gwt-dev-modified.jar and gwt-user-modified.jar from this directory
-4. run ./createApiCheckerReferenceJars.sh
+1. Download and unzip the GWT SDK zip
+2. Create a directory for the GWT version being added, and cd into it
+3. Copy gwt-dev.jar and gwt-user.jar into this new directory
+4. Run ./createApiCheckerReferenceJars.sh
    - Ignore the benign error about finding com/google/web.  The directory only exists in gwt-user.
 5. Delete gwt-dev.jar and gwt-user.jar from this directory
 6. Commit the new gwt-dev-modified.jar and gwt-user-modified.jar
