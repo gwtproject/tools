@@ -11,3 +11,5 @@ failing).
 Also move the jdtCompilerAdapter.jar out of the jdt jar file and rename it to reflect the
 version. E.g. if the jdt jar file was named org.eclipse.jdt.core-3.8.2.v20120814-155456.jar,
 rename the jdtCompilerAdapter.jar to jdtCompilerAdapter-3.8.2.v20120814-155456.jar
+
+Starting from JDT 3.33.0 we need to include 2 jars, the jdt core jar and the jdt compiler batch jar.
