@@ -1,9 +1,23 @@
 IMPORTANT NOTE WHEN UPGRADING THE JDT.
 
-Starting from JDT 3.33.0 we need to include 2 jars, the jdt core jar and the jdt compiler batch jar.
+Starting from JDT 3.33.0 we no longer need to repackage the JDT jar, instead we make a jar list that reflect the same
+dependency that we get from a maven build.
 
-For ant you can download both jars and there sources by downloading the eclipse sdk from
-https://www.eclipse.org/downloads/packages/
+In order to obtain this list of jars, we build a maven project that depends on the newer version of eclipse JDT and copy
+the dependencies from there, following these steps :
 
-After download and extract the target build jars will be found under eclipse/plugins in the extracted folder.
+1. In tools project make a folder for the new JDT version under lib/eclipse.
+2. Also in tool project under `lib/eclipse` cd into `dep-grab` folder and run following commands replacing the output dir
+with the new eclipse version folder created in the previous step
+
+4. Run the following commands replacing the [path to tools] with your local path of the tools repository.
+        ```
+        mvn dependency:copy-dependencies -DoutputDirectory=../3.33.0/
+        ```
+        ```
+        mvn dependency:copy-dependencies -DoutputDirectory=../3.33.0/ -Dclassifier=sources
+        ```
+
+This should copy all jdt dependencies and source to the new version folder.
+
 
