@@ -1,103 +1,120 @@
-#!/usr/bin/python2.4
-# update-jdt.py
-#
-# This script is used to massage a JDT jar from Eclipse
-# for inclusion in the GWT tools repository.
-# It strips out files that are not needed and adds a version.txt
-# file.
-#
-# Run it as:
-#
-# python update-jdt.py jarfile sourcefile
+#!/usr/bin/env python3
+"""
+Usage: ./clean_jars.py <jdt version>
 
-import re
+This script does the following:
+  1) Runs Maven to copy dependencies (and sources) into a temporary directory ("./temp")
+  2) Cleans/creates the output directory (whose name is given by the jdt version parameter)
+  3) Copies all JAR files (and only JARs) from the temp directory to the output directory,
+     preserving the subdirectory structure.
+  4) Removes signature files (META-INF/*.SF and META-INF/*.RSA) from each copied JAR (using the zip command)
+  5) Removes the temporary directory
+
+Note: The bash version had a header comment that mentioned two parameters, but in fact only one
+      parameter (the JDT version) is used; this same script follows that logic.
+"""
+
+import os
 import sys
-import zipfile
+import shutil
+import subprocess
 
-# White listing
-jarWhitelist = [
-    "about.html",
-    "org/eclipse/jdt/core/compiler",
-    "org/eclipse/jdt/internal/compiler",
-    "org/eclipse/jdt/internal/core/util"
-]
+def run_maven_commands(jdt_version, input_dir):
+    """
+    Run the Maven commands to copy the dependencies and sources into the temporary directory.
+    """
+    maven_cmd = [
+        "mvn", "-f", "./dep-grab/pom.xml",
+        "dependency:copy-dependencies",
+        f"-Djdt.version={jdt_version}",
+        f"-DoutputDirectory=.{input_dir}"
+    ]
+    print("Running Maven to copy dependencies...")
+    subprocess.run(maven_cmd, check=True)
 
-def whitelistAllows(filename):
-    for start in jarWhitelist:
-        if filename.startswith(start):
-            return True
-    return False
-
-
-# Parse arguments
-if len(sys.argv) != 3:
-    print "Usage: python update-jdt.py org.eclipse.jdt.core_N.N.N.v_NNN_RNNx.jar org.eclipse.jdt.core.source_N.N.N.v_NNN_RNNx.jar"
-    sys.exit(1)
-
-jdtjar = sys.argv[1]
-srcjar = sys.argv[2]
-
-print "JDT jar: " + jdtjar
-print "source jar: " + srcjar
+    maven_cmd_sources = maven_cmd + ["-Dclassifier=sources"]
+    print("Running Maven to copy sources...")
+    subprocess.run(maven_cmd_sources, check=True)
 
 
-# extract versions from the names, and make sure they match
-versionOfJarPattern = re.compile(r"org\.eclipse\.jdt\.core(\.source)?_(.*)\.jar")
-def versionOfJar(jarname):
-    match = versionOfJarPattern.match(jarname)
-    if match == None:
-        return ""
-    else:
-        return match.group(2)
-
-version = versionOfJar(jdtjar)
-srcversion = versionOfJar(srcjar)
-
-if version == None or srcversion == None:
-    print "Cannot determine the version number of these jars."
-    sys.exit(2)
-
-if version != srcversion:
-    print "The version of the two jars is inconsistent (" + version1 + " vs. " + version2
-    sys.exit(2)
-
-print "long version: " + version
-
-shortVersionPattern = re.compile(r"([0-9]+\.[0-9]+\.[0-9]+)\.v.*")
-shortVersion = shortVersionPattern.match(version).group(1)
-
-print "short version: " + shortVersion
+def clean_output_directory(output_dir):
+    """
+    Remove the output directory if it exists and then create it.
+    """
+    print(f"Cleaning/creating output directory: {output_dir}")
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
 
-
-# build jars for GWT
-def filterjar(injarname, outjarname):
-    print "writing " + outjarname + "..."
-
-    outzip = zipfile.ZipFile(outjarname, mode='w')
-    inzip = zipfile.ZipFile(injarname, mode='r')
-
-    for info in inzip.infolist():
-        if whitelistAllows(info.filename):
-            data = inzip.read(info.filename)
-            outinfo = zipfile.ZipInfo(filename=info.filename,
-                                      date_time=info.date_time)
-            outinfo.external_attr = 0600 << 16L #fixup permissions
-            outinfo.compress_type = zipfile.ZIP_DEFLATED
-            outzip.writestr(outinfo, data)
-
-    inzip.close()
-    outzip.close()
-
-jdtforgwt = "jdt-" + shortVersion + ".jar"
-srcforgwt = "jdt-" + shortVersion + "-src.zip"
-
-filterjar(jdtjar, jdtforgwt)
-filterjar(srcjar, srcforgwt)
+def copy_jars(input_dir, output_dir):
+    """
+    Walk the input directory (which is "./temp"), and copy any file ending with .jar to the
+    output directory preserving the directory structure.
+    """
+    print(f"Copying JAR files from: {input_dir} to: {output_dir}")
+    for root, _, files in os.walk(input_dir):
+        for filename in files:
+            if filename.lower().endswith('.jar'):
+                src = os.path.join(root, filename)
+                # Get relative path from input_dir to maintain the structure.
+                rel_path = os.path.relpath(src, input_dir)
+                dest = os.path.join(output_dir, rel_path)
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                shutil.copy2(src, dest)
 
 
-# add version.txt
-jdtzip = zipfile.ZipFile(jdtforgwt, "a")
-jdtzip.writestr(zipfile.ZipInfo(filename="org/eclipse/jdt/version.txt"),
-                "version " + version + "\n")
-jdtzip.close()
+def remove_signature_files(output_dir):
+    """
+    For each jar file in the output directory, run 'zip -d' to remove META-INF/*.SF and META-INF/*.RSA.
+    """
+    print("Removing signature files (*.SF, *.RSA) from copied JARs...")
+    for root, _, files in os.walk(output_dir):
+        for filename in files:
+            if filename.lower().endswith('.jar'):
+                jar_path = os.path.join(root, filename)
+                print(f"Cleaning {jar_path}")
+                # Call zip -d to delete the signature files.
+                # Any errors (for example, if the jar does not contain those files) are ignored.
+                try:
+                    subprocess.run(
+                        ["zip", "-d", jar_path, "META-INF/*.SF", "META-INF/*.RSA"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        check=True
+                    )
+                except subprocess.CalledProcessError:
+                    # If the zip command fails, we ignore the error.
+                    pass
+
+
+def main():
+    # Verify that the required parameter is provided.
+    if len(sys.argv) < 2:
+        print("Usage: {} <jdt version>".format(sys.argv[0]))
+        sys.exit(1)
+
+    # In the original bash script, the only parameter is used as the JDT version as well as the output directory.
+    jdt_version = sys.argv[1]
+    input_dir = "./temp"
+    output_dir = sys.argv[1]
+
+    # 1) Run Maven commands to copy dependencies and sources.
+    run_maven_commands(jdt_version, input_dir)
+
+    # 2) Clean (or create) the output directory.
+    clean_output_directory(output_dir)
+
+    # 3) Copy all jar files from the temporary input directory to the output directory.
+    copy_jars(input_dir, output_dir)
+
+    # 4) Remove the signature files from the copied jars.
+    remove_signature_files(output_dir)
+
+    # 5) Remove the temporary input directory.
+    shutil.rmtree(input_dir, ignore_errors=True)
+
+    print(f"Done! Cleaned JARs are in: {output_dir}")
+
+if __name__ == '__main__':
+    main()

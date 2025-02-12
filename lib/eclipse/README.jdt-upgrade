@@ -4,19 +4,12 @@ Starting from JDT 3.33.0 we no longer need to repackage the JDT jar, instead we 
 dependency that we get from a maven build.
 
 In order to obtain this list of jars, we build a maven project that depends on the newer version of eclipse JDT and copy
-the dependencies from there, following these steps :
+the dependencies from there, then we remove any signature files from those jars to prepare then for packaging with gwt
+this process is done by executing the script "update-jdt.py" :
 
-1. In tools project make a folder for the new JDT version under lib/eclipse.
-2. Also in tool project under `lib/eclipse` cd into `dep-grab` folder and run following commands replacing the output dir
-with the new eclipse version folder created in the previous step
+for example, to update jdt to version 3.33.0 we run the command:
 
-4. Run the following commands replacing the [path to tools] with your local path of the tools repository.
-        ```
-        mvn dependency:copy-dependencies -DoutputDirectory=../3.33.0/
-        ```
-        ```
-        mvn dependency:copy-dependencies -DoutputDirectory=../3.33.0/ -Dclassifier=sources
-        ```
+python3 update-jdt.py 3.33.0
 
 This should copy all jdt dependencies and source to the new version folder.
 
