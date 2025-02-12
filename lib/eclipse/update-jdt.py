@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Usage: ./clean_jars.py <jdt version>
+Usage: ./update-jdt.py <jdt version>
 
 This script does the following:
   1) Runs Maven to copy dependencies (and sources) into a temporary directory ("./temp")
@@ -9,9 +9,6 @@ This script does the following:
      preserving the subdirectory structure.
   4) Removes signature files (META-INF/*.SF and META-INF/*.RSA) from each copied JAR (using the zip command)
   5) Removes the temporary directory
-
-Note: The bash version had a header comment that mentioned two parameters, but in fact only one
-      parameter (the JDT version) is used; this same script follows that logic.
 """
 
 import os
