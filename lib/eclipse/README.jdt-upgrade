@@ -1,13 +1,16 @@
 IMPORTANT NOTE WHEN UPGRADING THE JDT.
 
-The digital signature on the jdt jar file needs to be removed by removing the following files
-from the jar:
-/META-INF/*.RSA
-/META-INF/*.SF
+Starting from JDT 3.33.0 we no longer need to repackage the JDT jar, instead we make a jar list that reflect the same
+dependency that we get from a maven build.
 
-Failure to do so will cause the open-source build process to file with an obscure error (e.g. rmic
-failing).
+In order to obtain this list of jars, we build a maven project that depends on the newer version of eclipse JDT and copy
+the dependencies from there, then we remove any signature files from those jars to prepare then for packaging with gwt
+this process is done by executing the script "update-jdt.py" :
 
-Also move the jdtCompilerAdapter.jar out of the jdt jar file and rename it to reflect the
-version. E.g. if the jdt jar file was named org.eclipse.jdt.core-3.8.2.v20120814-155456.jar,
-rename the jdtCompilerAdapter.jar to jdtCompilerAdapter-3.8.2.v20120814-155456.jar
+for example, to update jdt to version 3.33.0 we run the command:
+
+python3 update-jdt.py 3.33.0
+
+This should copy all jdt dependencies and source to the new version folder.
+
+
